@@ -10,7 +10,6 @@
   <packaging>maven-plugin</packaging>
   <name>Jetty :: Jetty JSPC Maven Plugin</name>
   <properties>
-    <jsp-2-1-version>9.1.1.B60.25.p2</jsp-2-1-version>
   </properties>
   <build>
     <plugins>
