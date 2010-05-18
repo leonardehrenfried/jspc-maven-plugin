@@ -81,6 +81,11 @@
       <artifactId>jsp-2.1-glassfish</artifactId>
       <version>${jsp-2-1-version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-jsp-2.1</artifactId>
+      <version>${jetty-version}</version>
+    </dependency>
   </dependencies>
   <reporting>
   <plugins>
