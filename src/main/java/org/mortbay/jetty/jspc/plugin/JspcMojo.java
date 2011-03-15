@@ -244,7 +244,7 @@ public class JspcMojo extends AbstractMojo
         }
         catch (Exception e)
         {
-            throw new MojoFailureException(e, "Failure processing jsps","Failure processing jsps");
+            throw new MojoExecutionException("Failure processing jsps", e);
         }
     }
 
