@@ -1,5 +1,5 @@
 //========================================================================
-//$Id$
+//$Id: JspcMojo.java 6430 2011-03-15 17:52:17Z joakime $
 //Copyright 2006 Mort Bay Consulting Pty. Ltd.
 //------------------------------------------------------------------------
 //Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.jetty.util.IO;
 
 import java.io.BufferedReader;
@@ -30,7 +28,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -38,6 +35,8 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.StringUtils;
 
 /**
  * <p>
@@ -156,14 +155,14 @@ public class JspcMojo extends AbstractMojo
      * 
      * @parameter default-value="**\/*.jsp, **\/*.jspx"
      */
-    private String includes;
+    private String[] includes;
 
     /**
      * The comma separated list of file name patters to exclude from compilation.
      * 
      * @parameter default_value="**\/.svn\/**";
      */
-    private String excludes;
+    private String[] excludes;
 
     /**
      * The location of the compiled classes for the webapp
@@ -285,51 +284,44 @@ public class JspcMojo extends AbstractMojo
 
         // JspC#setExtensions() does not exist, so 
         // always set concrete list of files that will be processed.
-        String jspFiles = getJspFiles(webAppSourceDirectory);
-        System.err.println("Compiling "+jspFiles);
+        String[] jspFiles = getJspFiles(webAppSourceDirectory);
         System.err.println("Includes="+includes);
         System.err.println("Excludes="+excludes);
-        jspc.setJspFiles(jspFiles);
+        //jspc.setJspFiles(jspFiles);
         if (verbose)
         {
             getLog().info("Files selected to precompile: " + jspFiles);
         }
         
-
-        try
-        {
-            jspc.setIgnoreJspFragmentErrors(ignoreJspFragmentErrors);
-        }
-        catch (NoSuchMethodError e)
-        {
-            getLog().debug("Tomcat Jasper does not support configuration option 'ignoreJspFragmentErrors': ignored");
-        }
-
-        try
-        {
-            if (schemaResourcePrefix != null)
-                jspc.setSchemaResourcePrefix(schemaResourcePrefix);
-        }
-        catch (NoSuchMethodError e)
-        {
-            getLog().debug("Tomcat Jasper does not support configuration option 'schemaResourcePrefix': ignored");
-        }
         if (verbose)
             jspc.setVerbose(99);
         else
             jspc.setVerbose(0);
-
-        jspc.execute();
+				
+				for(String fileName:jspFiles){
+					jspc.setJspFiles(fileName);
+					getLog().info("Compiling "+fileName);
+					jspc.execute();
+				}
+				
 
         Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
 
-    private String getJspFiles(String webAppSourceDirectory)
+    private String[] getJspFiles(String webAppSourceDirectory)
     throws Exception
     {
-        List fileNames =  FileUtils.getFileNames(new File(webAppSourceDirectory),includes, excludes, false);
-        return StringUtils.join(fileNames.toArray(new String[0]), ",");
-
+        DirectoryScanner scanner = new DirectoryScanner();
+				scanner.setBasedir(new File(webAppSourceDirectory));
+        /*if ((excludes != null) && (excludes.length != 0)) {
+            scanner.setExcludes(excludes);
+        }*/
+        scanner.addDefaultExcludes();
+				scanner.setIncludes(includes);
+				scanner.setCaseSensitive(false);
+				scanner.scan();
+				
+				return scanner.getIncludedFiles();
     }
 
     /**
