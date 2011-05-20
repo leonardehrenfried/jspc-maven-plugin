@@ -62,8 +62,9 @@ import org.codehaus.plexus.util.StringUtils;
  * </p>
  * 
  * @author janb
+ * @author Leonard Ehrenfried
  * 
- * @goal jspc
+ * @goal compile
  * @phase process-classes
  * @requiresDependencyResolution compile
  * @description Runs jspc compiler to produce .java and .class files
@@ -153,7 +154,7 @@ public class JspcMojo extends AbstractMojo
      * The comma separated list of patterns for file extensions to be processed. By default
      * will include all .jsp and .jspx files.
      * 
-     * @parameter default-value="**\/*.jsp, **\/*.jspx"
+     * @parameter default-value="**\/*.jsp, **\/*.jspx,  **\/*.jspf"
      */
     private String[] includes;
 
@@ -285,9 +286,9 @@ public class JspcMojo extends AbstractMojo
         // JspC#setExtensions() does not exist, so 
         // always set concrete list of files that will be processed.
         String[] jspFiles = getJspFiles(webAppSourceDirectory);
-        System.err.println("Includes="+includes);
-        System.err.println("Excludes="+excludes);
-        //jspc.setJspFiles(jspFiles);
+        getLog().info("Includes="+includes);
+        getLog().info("Excludes="+excludes);
+				
         if (verbose)
         {
             getLog().info("Files selected to precompile: " + jspFiles);
@@ -444,7 +445,9 @@ public class JspcMojo extends AbstractMojo
         // already exist and refuses to create the web.xml fragment
         File generatedSourceDirectoryFile = new File(generatedClasses);
         if (!generatedSourceDirectoryFile.exists())
-            generatedSourceDirectoryFile.mkdirs();
+				{
+            generatedSourceDirectoryFile.mkdirs();	
+				}
     }
 
     /**
