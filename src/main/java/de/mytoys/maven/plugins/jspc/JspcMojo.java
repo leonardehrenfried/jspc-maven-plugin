@@ -33,6 +33,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import org.codehaus.plexus.util.DirectoryScanner;
@@ -269,19 +270,7 @@ public class JspcMojo extends AbstractMojo
         }
 
         Thread.currentThread().setContextClassLoader(ucl);
-
-        JspC jspc = new JspC();
-        jspc.setWebXmlFragment(webXmlFragment);
-        jspc.setUriroot(webAppSourceDirectory);
-        jspc.setPackage(packageRoot);
-        jspc.setOutputDir(generatedClasses);
-        jspc.setValidateXml(validateXml);
-        jspc.setClassPath(classpathStr.toString());
-        jspc.setCompile(true);
-        jspc.setSmapSuppressed(suppressSmap);
-        jspc.setSmapDumped(!suppressSmap);
-        jspc.setJavaEncoding(javaEncoding);
-
+				
         // JspC#setExtensions() does not exist, so 
         // always set concrete list of files that will be processed.
         String[] jspFiles = getJspFiles(webAppSourceDirectory);
@@ -295,20 +284,40 @@ public class JspcMojo extends AbstractMojo
             getLog().info("Files selected to precompile: " + jspFiles);
         }
         
-        if (verbose)
-            jspc.setVerbose(99);
-        else
-            jspc.setVerbose(0);
-				
-				for(String fileName:jspFiles){
-					jspc.setJspFiles(fileName);
-					getLog().info("Compiling "+fileName);
-					jspc.execute();
+				List<String> jspList = Arrays.asList(jspFiles);
+				Iterator<String> iterator=jspList.iterator();
+				for(int i=0; i<2; i++){
+					JspC jspC = createJspC(classpathStr.toString());
+					JspcWorker worker = new JspcWorker(jspC, iterator, getLog(), this);
+					worker.setName("jspc-"+i);
+					worker.start();
 				}
-				
+				synchronized(this){
+					this.wait();
+				}
 
         Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
+		
+	private JspC createJspC(String classpathString) {
+		JspC jspc = new JspC();
+		jspc.setWebXmlFragment(webXmlFragment);
+		jspc.setUriroot(webAppSourceDirectory);
+		jspc.setPackage(packageRoot);
+		jspc.setOutputDir(generatedClasses);
+		jspc.setValidateXml(validateXml);
+		jspc.setClassPath(classpathString);
+		jspc.setCompile(true);
+		jspc.setSmapSuppressed(suppressSmap);
+		jspc.setSmapDumped(!suppressSmap);
+		jspc.setJavaEncoding(javaEncoding);
+		if (verbose) {
+			jspc.setVerbose(99);
+		} else {
+			jspc.setVerbose(0);
+		}
+		return jspc;
+	}
 
     private String[] getJspFiles(String webAppSourceDirectory)
     throws Exception
