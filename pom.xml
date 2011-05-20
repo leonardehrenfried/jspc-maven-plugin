@@ -163,4 +163,13 @@
 			</plugin>
 		</plugins>
 	</reporting>
+	
+	<distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <!-- This gets automatically pushed to the gh-pages branch. -->
+      <url>file:${project.basedir}/site</url>
+    </site>
+  </distributionManagement>
+	
 </project>
