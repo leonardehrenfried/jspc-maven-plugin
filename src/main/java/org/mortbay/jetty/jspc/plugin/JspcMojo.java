@@ -44,8 +44,9 @@ import org.codehaus.plexus.util.StringUtils;
  * war.
  * </p>
  * <p>
- * This Plugin is a fork of jetty-jspc-maven-plugin but has the following 
- * improvements:
+ * It is a fork of <a href="http://docs.codehaus.org/display/JETTY/Maven+Jetty+Jspc+Plugin">jetty-jspc-maven-plugin</a>
+ * but has the following improvements:
+ * </p>
  * <ul>
  *  <li>Faster: on my test project I was able to cut down the compilation 
  *      time by about 40%
@@ -54,13 +55,8 @@ import org.codehaus.plexus.util.StringUtils;
  *      is currently being compiled
  *  </li>
  * </ul>
- * </p>
  * <p>
- *
  * The compiler used in this plugin the Apache Jasper 6.0.32.
- * </p>
- * 
- * <p>
  * </p>
  * 
  * @author janb
