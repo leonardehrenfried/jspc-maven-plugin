@@ -65,6 +65,7 @@ import org.codehaus.plexus.util.StringUtils;
  * @author Leonard Ehrenfried
  * 
  * @goal compile
+ * @goal jspc
  * @phase process-classes
  * @requiresDependencyResolution compile
  * @description Runs jspc compiler to produce .java and .class files
@@ -286,8 +287,10 @@ public class JspcMojo extends AbstractMojo
         // JspC#setExtensions() does not exist, so 
         // always set concrete list of files that will be processed.
         String[] jspFiles = getJspFiles(webAppSourceDirectory);
-        getLog().info("Includes="+includes);
-        getLog().info("Excludes="+excludes);
+        getLog().info("Includes="+StringUtils.join(includes, ","));
+        if(excludes!=null){
+					getLog().info("Excludes="+StringUtils.join(excludes, ","));
+				}
 				
         if (verbose)
         {
