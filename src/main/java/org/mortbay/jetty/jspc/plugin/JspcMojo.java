@@ -44,21 +44,23 @@ import org.codehaus.plexus.util.StringUtils;
  * war.
  * </p>
  * <p>
- * At runtime, the plugin will use the jsp2.0 jspc compiler if you are running
- * on a 1.4 or lower jvm. If you are using a 1.5 jvm, then the jsp2.1 compiler
- * will be selected. (this is the same behaviour as the <a
- * href="http://jetty.mortbay.org/maven-plugin">jetty plugin</a> for executing
- * webapps).
+ * This Plugin is a fork of jetty-jspc-maven-plugin but has the following 
+ * improvements:
+ * <ul>
+ *  <li>Faster: on my test project I was able to cut down the compilation 
+ *      time by about 40%
+ *  </li>
+ *  <li>Indication of the progress of the compilation by showing which JSP
+ *      is currently being compiled
+ *  </li>
+ * </ul>
  * </p>
  * <p>
- * Note that the same java compiler will be used as for on-the-fly compiled
- * jsps, which will be the Eclipse java compiler.
+ *
+ * The compiler used in this plugin the Apache Jasper 6.0.32.
  * </p>
  * 
  * <p>
- * See <a
- * href="http://docs.codehaus.org/display/JETTY/Maven+Jetty+Jspc+Plugin">Usage
- * Guide</a> for instructions on using this plugin.
  * </p>
  * 
  * @author janb
