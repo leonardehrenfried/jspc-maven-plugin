@@ -13,7 +13,7 @@
 //limitations under the License.
 //========================================================================
 
-package org.mortbay.jetty.jspc.plugin;
+package de.mytoys.maven.plugins;
 
 import org.apache.jasper.JspC;
 import org.apache.maven.artifact.Artifact;
