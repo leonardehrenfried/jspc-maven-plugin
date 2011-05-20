@@ -13,7 +13,7 @@
 //limitations under the License.
 //========================================================================
 
-package de.mytoys.maven.plugins;
+package de.mytoys.maven.plugins.jspc;
 
 import org.apache.jasper.JspC;
 import org.apache.maven.artifact.Artifact;
@@ -60,7 +60,7 @@ import org.codehaus.plexus.util.StringUtils;
  * </p>
  * 
  * @author janb
- * @author Leonard Ehrenfried
+ * @author <a href="mailto:leonard.ehrenfrie@web.de">Leonard Ehrenfried</a>
  * 
  * @goal compile
  * @goal jspc
