@@ -31,7 +31,7 @@
         <span id="publishDate">Last Published: 2011-05-20</span>
                   &nbsp;| <span id="projectVersion">Version: 1.0.0-SNAPSHOT</span>
                       </div>
-            <div class="xright">                    <a href="http://nexus.sonatype.org/oss-repository-hosting.html/jspc-maven-plugin" class="externalLink" title="JSPC Maven Plugin">JSPC Maven Plugin</a>
+            <div class="xright">                    <a href="http://lenniboy.github.com/jspc-maven-plugin/compile-mojo.html" class="externalLink" title="JSPC Maven Plugin">JSPC Maven Plugin</a>
               
         
       </div>
@@ -46,7 +46,7 @@
                                 <h5>Parent Project</h5>
                   <ul>
                   <li class="none">
-                          <a href="../index.html" title="Sonatype OSS Parent">Sonatype OSS Parent</a>
+                          <a href="http://nexus.sonatype.org/oss-repository-hosting.html/index.html" class="externalLink" title="Sonatype OSS Parent">Sonatype OSS Parent</a>
             </li>
           </ul>
                              <a href="http://maven.apache.org/" title="Built by Maven" class="poweredBy">
@@ -67,17 +67,22 @@
       <div><p>This goal will compile jsps for a webapp so that they can be
 included in a war.</p>
 
-<p>At runtime, the plugin will use the jsp2.0 jspc compiler if you
-are running on a 1.4 or lower jvm. If you are using a 1.5 jvm, then
-the jsp2.1 compiler will be selected. (this is the same behaviour
-as the <a class="externalLink" href="http://jetty.mortbay.org/maven-plugin">jetty
-plugin</a> for executing webapps).</p>
+<p>This Plugin is a fork of jetty-jspc-maven-plugin but has the
+following improvements:</p>
 
-<p>Note that the same java compiler will be used as for on-the-fly
-compiled jsps, which will be the Eclipse java compiler.</p>
+<ul>
+<li>Faster: on my test project I was able to cut down the
+compilation time by about 40%</li>
 
-<p>See <a class="externalLink" href="http://docs.codehaus.org/display/JETTY/Maven+Jetty+Jspc+Plugin">
-Usage Guide</a> for instructions on using this plugin.</p></div>
+<li>Indication of the progress of the compilation by showing which
+JSP is currently being compiled</li>
+</ul>
+
+<br />
+<br />
+ 
+
+<p>The compiler used in this plugin the Apache Jasper 6.0.32.</p></div>
       <p><b>Attributes</b>:</p>
       <ul>
         <li>Requires a Maven project to be executed.</li>
