@@ -7,7 +7,7 @@
 	<packaging>maven-plugin</packaging>
 	<name>JSPC Maven Plugin</name>
 	
-	<url>http://lenniboy.github.com/jspc-maven-plugin/compile-mojo.html</url>
+	<url>https://github.com/lenniboy/jspc-maven-plugin#readme</url>
 	
 	<developers>
 		<developer>
