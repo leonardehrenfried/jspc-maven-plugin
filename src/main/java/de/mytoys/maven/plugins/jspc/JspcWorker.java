@@ -21,22 +21,20 @@ public class JspcWorker extends Thread {
 
 	@Override
 	public void run() {
-		synchronized (lock) {
-			try {
-				
-				while (iterator.hasNext()) {
-					String filename = iterator.next();
-					compiler.setJspFiles(filename);
-					log.info("[Thread "+getName()+"] Compiling " + filename);
-					compiler.execute();
-				}
-				
-				lock.notifyAll();
+		try {
 
-			} catch (JasperException ex) {
-				log.error("JSP compilation error", ex);
-				throw new RuntimeException("jsp", ex);
+			while (iterator.hasNext()) {
+				String filename = iterator.next();
+				compiler.setJspFiles(filename);
+				log.info("[Thread " + getName() + "] Compiling " + filename);
+				compiler.execute();
 			}
+
+			lock.notify();
+
+		} catch (JasperException ex) {
+			log.error("JSP compilation error", ex);
+			throw new RuntimeException("jsp", ex);
 		}
 	}
 }

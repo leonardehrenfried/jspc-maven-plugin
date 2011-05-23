@@ -45,7 +45,8 @@ import org.codehaus.plexus.util.StringUtils;
  * war.
  * </p>
  * <p>
- * It is a fork of <a href="http://docs.codehaus.org/display/JETTY/Maven+Jetty+Jspc+Plugin">jetty-jspc-maven-plugin</a>
+ * It is a fork of 
+ * <a href="http://docs.codehaus.org/display/JETTY/Maven+Jetty+Jspc+Plugin">jetty-jspc-maven-plugin</a>
  * but has the following improvements:
  * </p>
  * <ul>
@@ -271,8 +272,6 @@ public class JspcMojo extends AbstractMojo
 
         Thread.currentThread().setContextClassLoader(ucl);
 				
-        // JspC#setExtensions() does not exist, so 
-        // always set concrete list of files that will be processed.
         String[] jspFiles = getJspFiles(webAppSourceDirectory);
         getLog().info("Includes="+StringUtils.join(includes, ","));
         if(excludes!=null){
@@ -291,6 +290,7 @@ public class JspcMojo extends AbstractMojo
 					JspcWorker worker = new JspcWorker(jspC, iterator, getLog(), this);
 					worker.setName("jspc-"+i);
 					worker.start();
+					getLog().info("started compiler thread "+i);
 				}
 				synchronized(this){
 					this.wait();
@@ -324,9 +324,9 @@ public class JspcMojo extends AbstractMojo
     {
         DirectoryScanner scanner = new DirectoryScanner();
 				scanner.setBasedir(new File(webAppSourceDirectory));
-        /*if ((excludes != null) && (excludes.length != 0)) {
+        if ((excludes != null) && (excludes.length != 0)) {
             scanner.setExcludes(excludes);
-        }*/
+        }
         scanner.addDefaultExcludes();
 				scanner.setIncludes(includes);
 				scanner.setCaseSensitive(false);
