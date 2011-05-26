@@ -35,6 +35,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -63,7 +64,6 @@ import org.codehaus.plexus.util.StringUtils;
  * @author <a href="mailto:leonard.ehrenfrie@web.de">Leonard Ehrenfried</a>
  * 
  * @goal compile
- * @goal jspc
  * @phase process-classes
  * @requiresDependencyResolution compile
  * @description Runs jspc compiler to produce .java and .class files
@@ -234,12 +234,22 @@ public class JspcMojo extends AbstractMojo
             getLog().info("ignoreJspFragmentErrors=" + ignoreJspFragmentErrors);
             getLog().info("schemaResourcePrefix=" + schemaResourcePrefix);
         }
-        try
-        {
-            prepare();
+        try{
+            long start=System.currentTimeMillis();
+						
+						prepare();
             compile();
             cleanupSrcs();
             mergeWebXml();
+            
+						long finish=System.currentTimeMillis();
+						long millis = finish - start;
+						String time = String.format("%d min, %d sec",
+									TimeUnit.MILLISECONDS.toMinutes(millis),
+									TimeUnit.MILLISECONDS.toSeconds(millis)
+									- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
+						
+						getLog().info("Compilation completed in "+time);
         }
         catch (Exception e)
         {
@@ -315,9 +325,9 @@ public class JspcMojo extends AbstractMojo
     {
         DirectoryScanner scanner = new DirectoryScanner();
 				scanner.setBasedir(new File(webAppSourceDirectory));
-        /*if ((excludes != null) && (excludes.length != 0)) {
+        if ((excludes != null) && (excludes.length != 0)) {
             scanner.setExcludes(excludes);
-        }*/
+        }
         scanner.addDefaultExcludes();
 				scanner.setIncludes(includes);
 				scanner.setCaseSensitive(false);
