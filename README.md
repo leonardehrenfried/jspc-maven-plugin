@@ -1,6 +1,6 @@
 #JSPC Maven Plugin
 
-This plugin precompiles JSPs. It is a fork of jetty-jspc-maven-plugin configured as follows:
+This plugin precompiles JSPs. It is a fork of jetty-jspc-maven-plugin and configured as follows:
     
     <build>
     ....
