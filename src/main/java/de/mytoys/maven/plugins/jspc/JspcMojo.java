@@ -281,13 +281,13 @@ public class JspcMojo extends AbstractMojo {
 			jspc.setVerbose(0);
 		}
 
+		String allJsp = "";
 		for (String fileName : jspFiles) {
-			jspc.setJspFiles(fileName);
-			getLog().info("Compiling " + fileName);
-			jspc.execute();
+		  allJsp += fileName + ",";
 		}
 
-
+		jspc.setJspFiles(allJsp);
+		jspc.execute();
 		Thread.currentThread().setContextClassLoader(currentClassLoader);
 	}
 
