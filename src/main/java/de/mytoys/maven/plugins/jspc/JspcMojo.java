@@ -31,10 +31,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
+
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -190,8 +189,27 @@ public class JspcMojo extends AbstractMojo {
 	 * @parameter
 	 */
 	private String schemaResourcePrefix;
+	/**
+   * Fail the build and stop at the first jspc error.
+   * If set to "false", all jsp will be compiled even if they raise errors, and all errors will be listed when they raise.
+   * In this case the build will fail too.
+   * In case of threads > 1 and stopAtFirstError=true, each thread can have is own first error.
+   *
+   * @parameter default-value="true"
+   */
+  private boolean stopAtFirstError;
+  /**
+   * The number of threads will be used for compile all of the jsps.
+   * Number total of jsps will be divided by thread number.
+   * Each part will be given to differents thread.
+   *
+   * @parameter default-value="1"
+   */
+  private int threads;
 
-	public void execute() throws MojoExecutionException, MojoFailureException {
+
+	@Override
+  public void execute() throws MojoExecutionException, MojoFailureException {
 		if (getLog().isDebugEnabled()) {
 			getLog().info("verbose=" + verbose);
 			getLog().info("webAppSourceDirectory=" + webAppSourceDirectory);
@@ -207,6 +225,8 @@ public class JspcMojo extends AbstractMojo {
 			getLog().info("suppressSmap=" + suppressSmap);
 			getLog().info("ignoreJspFragmentErrors=" + ignoreJspFragmentErrors);
 			getLog().info("schemaResourcePrefix=" + schemaResourcePrefix);
+			getLog().info("stopAtFirstError=" + stopAtFirstError);
+			getLog().info("threads=" + threads);
 		}
 		try {
 			long start = System.currentTimeMillis();
@@ -251,7 +271,47 @@ public class JspcMojo extends AbstractMojo {
 
 		Thread.currentThread().setContextClassLoader(ucl);
 
-		JspC jspc = new JspC();
+		String[] jspFiles = getJspFiles(webAppSourceDirectory);
+		if (verbose) {
+      getLog().info("Files selected to precompile: " + jspFiles);
+    }
+		
+		ExecutorService executor = Executors.newFixedThreadPool(threads);
+		List<Future<String>> results = executor.invokeAll(initJspcWorkers(classpathStr, jspFiles, initJspList(jspFiles)));
+		executor.shutdown();
+		
+		getLog().info("Number total of jsps : " + jspFiles.length);
+		manageResults(results);
+
+		Thread.currentThread().setContextClassLoader(currentClassLoader);
+	}
+
+	private List<String> initJspList(String[] jspFiles) {
+    List<String> jspFilesList = new ArrayList<>();
+    Collections.addAll(jspFilesList, jspFiles);
+    return jspFilesList;
+  }
+
+  private List<JspcWorker> initJspcWorkers(StringBuffer classpathStr, String[] jspFiles, List<String> jspFilesList) throws Exception {
+    List<JspcWorker> workers = new ArrayList<>();
+		int minItem = jspFiles.length / threads;
+		int maxItem = minItem +1;
+		int threadsWithMaxItems = jspFiles.length - threads * minItem;
+		int start = 0;
+		for (int i=0; i<threads; i++){
+		  int itemsCount = (i < threadsWithMaxItems ? maxItem : minItem);
+		  int end = start + itemsCount;
+		  List<String> jspFilesSubList = jspFilesList.subList(start, end);
+	    JspcWorker worker = new JspcWorker(initJspc(classpathStr), jspFilesSubList);
+	    workers.add(worker);
+	    start = end;
+	    getLog().info("Number of jsps for thread " + (i+1) + " : " + jspFilesSubList.size());
+		}
+    return workers;
+  }
+
+  private JspC initJspc(StringBuffer classpathStr) throws Exception {
+    JspC jspc = new JspC();
 		jspc.setWebXmlFragment(webXmlFragment);
 		jspc.setUriroot(webAppSourceDirectory);
 		jspc.setPackage(packageRoot);
@@ -262,34 +322,38 @@ public class JspcMojo extends AbstractMojo {
 		jspc.setSmapSuppressed(suppressSmap);
 		jspc.setSmapDumped(!suppressSmap);
 		jspc.setJavaEncoding(javaEncoding);
+		jspc.setFailOnError(stopAtFirstError);
+		
+	  // JspC#setExtensions() does not exist, so 
+    // always set concrete list of files that will be processed.
+    
+    getLog().info("Includes=" + StringUtils.join(includes, ","));
+    if (excludes != null) {
+      getLog().info("Excludes=" + StringUtils.join(excludes, ","));
+    }
 
-		// JspC#setExtensions() does not exist, so 
-		// always set concrete list of files that will be processed.
-		String[] jspFiles = getJspFiles(webAppSourceDirectory);
-		getLog().info("Includes=" + StringUtils.join(includes, ","));
-		if (excludes != null) {
-			getLog().info("Excludes=" + StringUtils.join(excludes, ","));
-		}
+    if (verbose) {
+      jspc.setVerbose(99);
+    } else {
+      jspc.setVerbose(0);
+    }
 
-		if (verbose) {
-			getLog().info("Files selected to precompile: " + jspFiles);
-		}
-
-		if (verbose) {
-			jspc.setVerbose(99);
-		} else {
-			jspc.setVerbose(0);
-		}
-
-		for (String fileName : jspFiles) {
-			jspc.setJspFiles(fileName);
-			getLog().info("Compiling " + fileName);
-			jspc.execute();
-		}
-
-
-		Thread.currentThread().setContextClassLoader(currentClassLoader);
-	}
+    return jspc;
+  }
+  
+  private void manageResults(List<Future<String>> results) throws InterruptedException, ExecutionException, MojoExecutionException {
+    boolean failTheBuild = false;
+    for (Future<String> result : results){
+      if (result.get() != null){
+        getLog().error(result.get());
+        failTheBuild = true;
+      }
+    }
+    
+    if (failTheBuild){
+      throw new MojoExecutionException("see previous errors");
+    }
+  }
 
 	private String[] getJspFiles(String webAppSourceDirectory)
 					throws Exception {
@@ -320,7 +384,8 @@ public class JspcMojo extends AbstractMojo {
 			if (generatedClassesDir.exists() && generatedClassesDir.isDirectory()) {
 				delete(generatedClassesDir, new FileFilter() {
 
-					public boolean accept(File f) {
+					@Override
+          public boolean accept(File f) {
 						return f.isDirectory() || f.getName().endsWith(".java");
 					}
 				});
