@@ -12,7 +12,7 @@
 //See the License for the specific language governing permissions and
 //limitations under the License.
 //========================================================================
-package de.mytoys.maven.plugins.jspc;
+package io.leonard.maven.plugins.jspc;
 
 import org.apache.jasper.JspC;
 import org.apache.maven.artifact.Artifact;
