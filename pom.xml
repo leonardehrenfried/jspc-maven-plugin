@@ -6,9 +6,9 @@
 	<version>1.1.1-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
 	<name>JSPC Maven Plugin</name>
-	
+
 	<url>https://github.com/lenniboy/jspc-maven-plugin#readme</url>
-	
+
 	<developers>
 		<developer>
 			<id>lenni</id>
@@ -16,7 +16,7 @@
 			<email>leonard.ehrenfried@web.de</email>
 		</developer>
 	</developers>
-  
+
 	<properties>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven.compiler.source>1.7</maven.compiler.source>
@@ -42,7 +42,7 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>
@@ -61,7 +61,7 @@
 			<artifactId>ecj</artifactId>
 			<version>4.6.1</version>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.apache.ant</groupId>
 			<artifactId>ant</artifactId>
@@ -73,7 +73,7 @@
 			<artifactId>jetty-util</artifactId>
 			<version>7.4.1.v20110513</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-project</artifactId>
@@ -100,7 +100,7 @@
 			<version>2.5</version>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
@@ -110,7 +110,7 @@
 				<executions>
 					<execution>
 						<id>exec-plugin-doc</id>
-						<phase>generate-sources</phase>            
+						<phase>generate-sources</phase>
 						<goals>
 							<goal>xdoc</goal>
 							<goal>helpmojo</goal>
@@ -132,7 +132,7 @@
 			</plugin>
 		</plugins>
 	</build>
-	
+
 	<reporting>
 		<plugins>
 			<plugin>
@@ -167,13 +167,13 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	
+
 	<distributionManagement>
-    <site>
-      <id>gh-pages</id>
-      <!-- This gets automatically pushed to the gh-pages branch. -->
-      <url>file:${project.basedir}/site</url>
-    </site>
-  </distributionManagement>
-	
+		<site>
+			<id>gh-pages</id>
+			<!-- This gets automatically pushed to the gh-pages branch. -->
+			<url>file:${project.basedir}/site</url>
+		</site>
+	</distributionManagement>
+
 </project>
