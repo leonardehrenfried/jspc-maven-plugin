@@ -7,11 +7,11 @@
 	<packaging>maven-plugin</packaging>
 	<name>JSPC Maven Plugin</name>
 
-	<url>https://github.com/lenniboy/jspc-maven-plugin#readme</url>
+	<url>https://github.com/leonardehrenfried/jspc-maven-plugin#readme</url>
 
 	<developers>
 		<developer>
-			<id>lenni</id>
+			<id>leonard</id>
 			<name>Leonard Ehrenfried</name>
 			<email>leonard.ehrenfried@web.de</email>
 		</developer>
@@ -30,9 +30,9 @@
 	</parent>
 
 	<scm>
-		<connection>scm:git:git://github.com/lenniboy/jspc-maven-plugin.git</connection>
-		<developerConnection>scm:git:git@github.com:lenniboy/jspc-maven-plugin.git</developerConnection>
-		<url>https://github.com/lenniboy/jspc-maven-plugin</url>
+		<connection>scm:git:git://github.com/leonardehrenfried/jspc-maven-plugin.git</connection>
+		<developerConnection>scm:git:git@github.com:leonardehrenfried/jspc-maven-plugin.git</developerConnection>
+		<url>https://github.com/leonardehrenfried/jspc-maven-plugin</url>
 	</scm>
 
 	<licenses>
