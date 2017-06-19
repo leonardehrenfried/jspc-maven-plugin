@@ -208,6 +208,13 @@ public class JspcMojo extends AbstractMojo {
   private int threads;
 
 
+  /**
+   * Whether Jsp Tag Pooling should be enabled.
+   *
+   * @parameter default-value="true"
+   */
+  private boolean enableJspTagPooling;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (getLog().isDebugEnabled()) {
@@ -227,6 +234,7 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("schemaResourcePrefix=" + schemaResourcePrefix);
       getLog().info("stopAtFirstError=" + stopAtFirstError);
       getLog().info("threads=" + threads);
+      getLog().info("enableJspTagPooling=" + enableJspTagPooling);
     }
     try {
       long start = System.currentTimeMillis();
@@ -323,6 +331,7 @@ public class JspcMojo extends AbstractMojo {
     jspc.setSmapDumped(!suppressSmap);
     jspc.setJavaEncoding(javaEncoding);
     jspc.setFailOnError(stopAtFirstError);
+    jspc.setPoolingEnabled(enableJspTagPooling);
 
     // JspC#setExtensions() does not exist, so
     // always set concrete list of files that will be processed.
