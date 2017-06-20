@@ -38,3 +38,4 @@ Full documentation of the goal is available at http://leonardehrenfried.github.c
 
 1. Set version in `pom.xml`
 1. `mvn clean deploy`
+1. `make commit-site`

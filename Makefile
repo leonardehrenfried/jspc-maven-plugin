@@ -5,3 +5,4 @@ commit-site:
 	git add .
 	git commit -am "Add newest version of Maven site"
 	git push
+	git checkout master
