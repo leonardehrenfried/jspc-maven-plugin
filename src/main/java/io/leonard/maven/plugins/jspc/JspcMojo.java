@@ -207,13 +207,19 @@ public class JspcMojo extends AbstractMojo {
    */
   private int threads;
 
-
   /**
    * Whether Jsp Tag Pooling should be enabled.
    *
    * @parameter default-value="true"
    */
   private boolean enableJspTagPooling;
+
+  /**
+   * Should white spaces in template text between actions or directives be trimmed?
+   *
+   * @parameter default-value="false"
+   */
+  private boolean trimSpaces;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -235,6 +241,7 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("stopAtFirstError=" + stopAtFirstError);
       getLog().info("threads=" + threads);
       getLog().info("enableJspTagPooling=" + enableJspTagPooling);
+      getLog().info("trimSpaces=" + trimSpaces);
     }
     try {
       long start = System.currentTimeMillis();
@@ -332,6 +339,7 @@ public class JspcMojo extends AbstractMojo {
     jspc.setJavaEncoding(javaEncoding);
     jspc.setFailOnError(stopAtFirstError);
     jspc.setPoolingEnabled(enableJspTagPooling);
+    jspc.setTrimSpaces(trimSpaces);
 
     // JspC#setExtensions() does not exist, so
     // always set concrete list of files that will be processed.
