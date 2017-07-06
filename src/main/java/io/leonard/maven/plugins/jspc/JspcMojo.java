@@ -221,6 +221,13 @@ public class JspcMojo extends AbstractMojo {
    */
   private boolean trimSpaces;
 
+  /**
+   * Should text strings be generated as char arrays, to improve performance in some cases?
+   *
+   * @parameter default-value="false"
+   */
+  private boolean genStringAsCharArray;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (getLog().isDebugEnabled()) {
@@ -242,6 +249,7 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("threads=" + threads);
       getLog().info("enableJspTagPooling=" + enableJspTagPooling);
       getLog().info("trimSpaces=" + trimSpaces);
+      getLog().info("genStringAsCharArray=" + genStringAsCharArray);
     }
     try {
       long start = System.currentTimeMillis();
@@ -340,6 +348,8 @@ public class JspcMojo extends AbstractMojo {
     jspc.setFailOnError(stopAtFirstError);
     jspc.setPoolingEnabled(enableJspTagPooling);
     jspc.setTrimSpaces(trimSpaces);
+    jspc.setGenStringAsCharArray(genStringAsCharArray);
+
 
     // JspC#setExtensions() does not exist, so
     // always set concrete list of files that will be processed.
