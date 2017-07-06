@@ -32,7 +32,7 @@ It has the following improvements compared to jetty-jspc-maven-plugin:
 * More descriptive error messages: Under Maven 3 this plugin shows a clear indication of what caused the error and which file it is in
 * Indication of the progress of the compilation by showing which JSP is currently being compiled
 
-The compiler used in this plugin is [Apache Jasper 8.5.8](http://search.maven.org/#artifactdetails%7Corg.apache.tomcat%7Cjasper%7C8.5.8%7Cjar).
+The compiler used in this plugin is [Apache Jasper 8.5.8](http://search.maven.org/#artifactdetails%7Corg.apache.tomcat%7Ctomcat-jasper%7C8.5.8%7Cjar).
 
 Full documentation of the goal is available at http://leonardehrenfried.github.com/jspc-maven-plugin/compile-mojo.html
 
