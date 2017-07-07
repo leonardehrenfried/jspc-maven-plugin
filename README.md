@@ -1,5 +1,6 @@
 ## JSPC Maven Plugin
 
+[![Build Status](https://travis-ci.org/leonardehrenfried/jspc-maven-plugin.svg?branch=master)](https://travis-ci.org/leonardehrenfried/jspc-maven-plugin)
 [![Maven Central](https://img.shields.io/maven-central/v/io.leonard.maven.plugins/jspc-maven-plugin.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22io.leonard.maven.plugins%22%20AND%20a%3A%22jspc-maven-plugin%22)
 
 This plugin precompiles JSPs. It is a fork of jetty-jspc-maven-plugin and configured as follows:
