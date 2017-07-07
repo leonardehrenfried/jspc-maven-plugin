@@ -1,4 +1,4 @@
 sudo: false
 language: java
 install: true
-script: mvn compile
+script: mvn test
