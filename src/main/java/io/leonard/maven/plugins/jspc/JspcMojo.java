@@ -228,6 +228,13 @@ public class JspcMojo extends AbstractMojo {
    */
   private boolean genStringAsCharArray;
 
+  /**
+   * Version of Java used to compile the jsp files.
+   *
+   * @parameter default-value="1.7"
+   */
+  private String compilerVersion;
+  
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (getLog().isDebugEnabled()) {
@@ -250,6 +257,7 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("enableJspTagPooling=" + enableJspTagPooling);
       getLog().info("trimSpaces=" + trimSpaces);
       getLog().info("genStringAsCharArray=" + genStringAsCharArray);
+      getLog().info("compilerVersion=" + compilerVersion);
     }
     try {
       long start = System.currentTimeMillis();
@@ -349,6 +357,8 @@ public class JspcMojo extends AbstractMojo {
     jspc.setPoolingEnabled(enableJspTagPooling);
     jspc.setTrimSpaces(trimSpaces);
     jspc.setGenStringAsCharArray(genStringAsCharArray);
+    jspc.setCompilerSourceVM(compilerVersion);
+    jspc.setCompilerTargetVM(compilerVersion);
 
 
     // JspC#setExtensions() does not exist, so
