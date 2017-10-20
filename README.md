@@ -37,6 +37,10 @@ The compiler used in this plugin is [Apache Jasper 8.5.8](http://search.maven.or
 
 Full documentation of the goal is available at http://leonardehrenfried.github.com/jspc-maven-plugin/compile-mojo.html
 
+## Comparison of precompiler plugins
+
+[https://tcollignon.github.io/2016/12/04/How-to-compile-JSP-with-Tomcat-and-Maven-faster.html](https://tcollignon.github.io/2016/12/04/How-to-compile-JSP-with-Tomcat-and-Maven-faster.html)
+
 ## Release process
 
 1. Set version in `pom.xml`
