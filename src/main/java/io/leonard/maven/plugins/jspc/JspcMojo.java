@@ -55,7 +55,7 @@ import org.codehaus.plexus.util.StringUtils;
  *  </li>
  * </ul>
  * <p>
- * The compiler used in this plugin the Apache Jasper 6.0.32.
+ * The compiler used in this plugin the Apache Jasper 8.5.8.
  * </p>
  *
  * @author janb
@@ -79,7 +79,11 @@ public class JspcMojo extends AbstractMojo {
   private MavenProject project;
   /**
    * File into which to generate the &lt;servlet&gt; and
-   * &lt;servlet-mapping&gt; tags for the compiled jsps
+   * &lt;servlet-mapping&gt; tags for the compiled jsps.
+   * <br>
+   * 
+   * If multithreading mode is active (threads > 1), then this filename
+   * will be suffixed by ".threadIndex" (example : webfrag.xml.3). 
    *
    * @parameter default-value="${basedir}/target/webfrag.xml"
    */
@@ -321,21 +325,21 @@ public class JspcMojo extends AbstractMojo {
     int maxItem = minItem +1;
     int threadsWithMaxItems = jspFiles.length - threads * minItem;
     int start = 0;
-    for (int i=0; i<threads; i++){
-      int itemsCount = (i < threadsWithMaxItems ? maxItem : minItem);
+    for (int index=0; index<threads; index++){
+      int itemsCount = (index < threadsWithMaxItems ? maxItem : minItem);
       int end = start + itemsCount;
       List<String> jspFilesSubList = jspFilesList.subList(start, end);
-      JspcWorker worker = new JspcWorker(initJspc(classpathStr), jspFilesSubList);
+      JspcWorker worker = new JspcWorker(initJspc(classpathStr, index), jspFilesSubList);
       workers.add(worker);
       start = end;
-      getLog().info("Number of jsps for thread " + (i+1) + " : " + jspFilesSubList.size());
+      getLog().info("Number of jsps for thread " + (index+1) + " : " + jspFilesSubList.size());
     }
     return workers;
   }
 
-  private JspC initJspc(StringBuffer classpathStr) throws Exception {
+  private JspC initJspc(StringBuffer classpathStr, int threadIndex) {
     JspC jspc = new JspC();
-    jspc.setWebXmlFragment(webXmlFragment);
+    jspc.setWebXmlFragment(getwebXmlFragmentFilename(threadIndex));
     jspc.setUriroot(webAppSourceDirectory);
     jspc.setPackage(packageRoot);
     jspc.setOutputDir(generatedClasses);
@@ -433,7 +437,8 @@ public class JspcMojo extends AbstractMojo {
   }
 
   /**
-   * Take the web fragment and put it inside a copy of the web.xml.
+   * Take the web fragment (for each thread if we active multithreading mode)
+   * and put it inside a copy of the web.xml.
    *
    * You can specify the insertion point by specifying the string in the
    * insertionMarker configuration entry.
@@ -445,6 +450,7 @@ public class JspcMojo extends AbstractMojo {
    */
   public void mergeWebXml() throws Exception {
     if (mergeFragment) {
+      
       // open the src web.xml
       File webXml = getWebXmlFile();
 
@@ -452,18 +458,14 @@ public class JspcMojo extends AbstractMojo {
         getLog().info(webXml.toString() + " does not exist, cannot merge with generated fragment");
         return;
       }
-
-      File fragmentWebXml = new File(webXmlFragment);
-      if (!fragmentWebXml.exists()) {
-        getLog().info("No fragment web.xml file generated");
-      }
-      File mergedWebXml = new File(fragmentWebXml.getParentFile(),
-        "web.xml");
+      
+      File mergedWebXml = new File(new File(getwebXmlFragmentFilename(0)).getParentFile(),
+          "web.xml");
       BufferedReader webXmlReader = new BufferedReader(new FileReader(
         webXml));
       PrintWriter mergedWebXmlWriter = new PrintWriter(new FileWriter(
         mergedWebXml));
-
+      
       // read up to the insertion marker or the </webapp> if there is no
       // marker
       boolean atInsertPoint = false;
@@ -480,12 +482,20 @@ public class JspcMojo extends AbstractMojo {
           mergedWebXmlWriter.println(line);
         }
       }
-
-      // put in the generated fragment
-      BufferedReader fragmentWebXmlReader = new BufferedReader(
-        new FileReader(fragmentWebXml));
-      IO.copy(fragmentWebXmlReader, mergedWebXmlWriter);
-
+      
+      for (int index=0; index<threads; index++){
+        File fragmentWebXml = new File(getwebXmlFragmentFilename(index));
+        if (!fragmentWebXml.exists()) {
+          getLog().info("No fragment web.xml file generated for thread " + index);
+        }else {
+          // put in the generated fragment for the current thread
+          BufferedReader fragmentWebXmlReader = new BufferedReader(
+            new FileReader(fragmentWebXml));
+          IO.copy(fragmentWebXmlReader, mergedWebXmlWriter);
+          fragmentWebXmlReader.close();
+        }
+      }
+      
       // if we inserted just before the </web-app>, put it back in
       if (marker.equals(END_OF_WEBAPP)) {
         mergedWebXmlWriter.println(END_OF_WEBAPP);
@@ -493,10 +503,9 @@ public class JspcMojo extends AbstractMojo {
 
       // copy in the rest of the original web.xml file
       IO.copy(webXmlReader, mergedWebXmlWriter);
-
+      
       webXmlReader.close();
       mergedWebXmlWriter.close();
-      fragmentWebXmlReader.close();
     }
   }
 
@@ -563,5 +572,16 @@ public class JspcMojo extends AbstractMojo {
     //is set for the web.xml location
     file = new File(webAppSrcDir, "web.xml");
     return file;
+  }
+  
+  /**
+   * Add thread index at the end of webXmlFragment filename to deal with multithreading.
+   * If the number of threads is equal to 1 (no multithreading) we don't add suffix to maintain the same behavior
+   * as in the mode without multithreading.
+   * @param threadNumber the index of current thread
+   * @return web xml fragment filename with thread index
+   */
+  private String getwebXmlFragmentFilename(int threadIndex) {
+    return threads == 1 ? webXmlFragment : webXmlFragment + "." + threadIndex;
   }
 }
