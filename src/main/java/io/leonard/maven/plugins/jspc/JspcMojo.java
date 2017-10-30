@@ -22,13 +22,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.jetty.util.IO;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
@@ -68,7 +62,9 @@ import org.codehaus.plexus.util.StringUtils;
  */
 public class JspcMojo extends AbstractMojo {
 
+  private static final String WEB_XML = "web.xml";
   public static final String END_OF_WEBAPP = "</web-app>";
+  
   /**
    * The maven project.
    *
@@ -282,7 +278,7 @@ public class JspcMojo extends AbstractMojo {
     ArrayList urls = new ArrayList();
     setUpClassPath(urls);
     URLClassLoader ucl = new URLClassLoader((URL[]) urls.toArray(new URL[0]), currentClassLoader);
-    StringBuffer classpathStr = new StringBuffer();
+    StringBuilder classpathStr = new StringBuilder();
 
     for (int i = 0; i < urls.size(); i++) {
       if (getLog().isDebugEnabled()) {
@@ -319,7 +315,7 @@ public class JspcMojo extends AbstractMojo {
     return jspFilesList;
   }
 
-  private List<JspcWorker> initJspcWorkers(StringBuffer classpathStr, String[] jspFiles, List<String> jspFilesList) throws Exception {
+  private List<JspcWorker> initJspcWorkers(StringBuilder classpathStr, String[] jspFiles, List<String> jspFilesList) {
     List<JspcWorker> workers = new ArrayList<>();
     int minItem = jspFiles.length / threads;
     int maxItem = minItem +1;
@@ -337,7 +333,7 @@ public class JspcMojo extends AbstractMojo {
     return workers;
   }
 
-  private JspC initJspc(StringBuffer classpathStr, int threadIndex) {
+  private JspC initJspc(StringBuilder classpathStr, int threadIndex) {
     JspC jspc = new JspC();
     jspc.setWebXmlFragment(getwebXmlFragmentFilename(threadIndex));
     jspc.setUriroot(webAppSourceDirectory);
@@ -386,8 +382,7 @@ public class JspcMojo extends AbstractMojo {
     }
   }
 
-  private String[] getJspFiles(String webAppSourceDirectory)
-    throws Exception {
+  private String[] getJspFiles(String webAppSourceDirectory) {
     DirectoryScanner scanner = new DirectoryScanner();
     scanner.setBasedir(new File(webAppSourceDirectory));
     if ((excludes != null) && (excludes.length != 0)) {
@@ -407,7 +402,7 @@ public class JspcMojo extends AbstractMojo {
    *
    * @throws Exception
    */
-  public void cleanupSrcs() throws Exception {
+  public void cleanupSrcs() {
     // delete the .java files - depending on keepGenerated setting
     if (!keepSources) {
       File generatedClassesDir = new File(generatedClasses);
@@ -448,68 +443,77 @@ public class JspcMojo extends AbstractMojo {
    *
    * @throws Exception
    */
-  public void mergeWebXml() throws Exception {
+  public void mergeWebXml() throws IOException {
     if (mergeFragment) {
       
       // open the src web.xml
-      File webXml = getWebXmlFile();
+      File webXmlFile = getWebXmlFile();
 
-      if (!webXml.exists()) {
-        getLog().info(webXml.toString() + " does not exist, cannot merge with generated fragment");
+      if (!webXmlFile.exists()) {
+        getLog().info(webXmlFile.toString() + " does not exist, cannot merge with generated fragment");
         return;
       }
       
       File mergedWebXml = new File(new File(getwebXmlFragmentFilename(0)).getParentFile(),
-          "web.xml");
-      BufferedReader webXmlReader = new BufferedReader(new FileReader(
-        webXml));
-      PrintWriter mergedWebXmlWriter = new PrintWriter(new FileWriter(
-        mergedWebXml));
-      
-      // read up to the insertion marker or the </webapp> if there is no
-      // marker
-      boolean atInsertPoint = false;
-      boolean atEOF = false;
-      String marker = (insertionMarker == null
-        || insertionMarker.equals("") ? END_OF_WEBAPP : insertionMarker);
-      while (!atInsertPoint && !atEOF) {
-        String line = webXmlReader.readLine();
-        if (line == null) {
-          atEOF = true;
-        } else if (line.indexOf(marker) >= 0) {
-          atInsertPoint = true;
-        } else {
-          mergedWebXmlWriter.println(line);
+          WEB_XML);
+      try (BufferedReader webXmlReader = new BufferedReader(new FileReader(webXmlFile))){
+        try(PrintWriter mergedWebXmlWriter = new PrintWriter(new FileWriter(mergedWebXml))){
+          String marker = writeStartOfWebXmlMergedFile(webXmlReader, mergedWebXmlWriter);
+          
+          writeXmlFragmentsInMergedXmlFile(mergedWebXmlWriter);
+          
+          writeEndOfWebXmlMergedFile(webXmlReader, mergedWebXmlWriter, marker);
         }
       }
-      
-      for (int index=0; index<threads; index++){
-        File fragmentWebXml = new File(getwebXmlFragmentFilename(index));
-        if (!fragmentWebXml.exists()) {
-          getLog().info("No fragment web.xml file generated for thread " + index);
-        }else {
-          // put in the generated fragment for the current thread
-          BufferedReader fragmentWebXmlReader = new BufferedReader(
-            new FileReader(fragmentWebXml));
-          IO.copy(fragmentWebXmlReader, mergedWebXmlWriter);
-          fragmentWebXmlReader.close();
-        }
-      }
-      
-      // if we inserted just before the </web-app>, put it back in
-      if (marker.equals(END_OF_WEBAPP)) {
-        mergedWebXmlWriter.println(END_OF_WEBAPP);
-      }
-
-      // copy in the rest of the original web.xml file
-      IO.copy(webXmlReader, mergedWebXmlWriter);
-      
-      webXmlReader.close();
-      mergedWebXmlWriter.close();
     }
   }
 
-  private void prepare() throws Exception {
+  private String writeStartOfWebXmlMergedFile(BufferedReader webXmlReader, PrintWriter mergedWebXmlWriter) throws IOException {
+    // read up to the insertion marker or the </webapp> if there is no
+    // marker
+    boolean atInsertPoint = false;
+    boolean atEOF = false;
+    String marker = (insertionMarker == null
+      || insertionMarker.equals("") ? END_OF_WEBAPP : insertionMarker);
+    while (!atInsertPoint && !atEOF) {
+      String line = webXmlReader.readLine();
+      if (line == null) {
+        atEOF = true;
+      } else if (line.indexOf(marker) >= 0) {
+        atInsertPoint = true;
+      } else {
+        mergedWebXmlWriter.println(line);
+      }
+    }
+    return marker;
+  }
+
+  private void writeXmlFragmentsInMergedXmlFile(PrintWriter mergedWebXmlWriter) throws IOException {
+    for (int index=0; index<threads; index++){
+      File fragmentWebXml = new File(getwebXmlFragmentFilename(index));
+      if (!fragmentWebXml.exists()) {
+        getLog().info("No fragment web.xml file generated for thread " + index);
+      }else {
+        // put in the generated fragment for the current thread
+        try (BufferedReader fragmentWebXmlReader = new BufferedReader(
+          new FileReader(fragmentWebXml))){
+          IO.copy(fragmentWebXmlReader, mergedWebXmlWriter);
+        }
+      }
+    }
+  }
+  
+  private void writeEndOfWebXmlMergedFile(BufferedReader webXmlReader, PrintWriter mergedWebXmlWriter, String marker) throws IOException {
+    // if we inserted just before the </web-app>, put it back in
+    if (marker.equals(END_OF_WEBAPP)) {
+      mergedWebXmlWriter.println(END_OF_WEBAPP);
+    }
+  
+    // copy in the rest of the original web.xml file
+    IO.copy(webXmlReader, mergedWebXmlWriter);
+  }
+
+  private void prepare() {
     // For some reason JspC doesn't like it if the dir doesn't
     // already exist and refuses to create the web.xml fragment
     File generatedSourceDirectoryFile = new File(generatedClasses);
@@ -527,11 +531,11 @@ public class JspcMojo extends AbstractMojo {
    * @param urls a list to which to add the urls of the dependencies
    * @throws Exception
    */
-  private void setUpClassPath(List urls) throws Exception {
+  private void setUpClassPath(List urls) throws IOException {
     String classesDir = classesDirectory.getCanonicalPath();
     classesDir = classesDir
       + (classesDir.endsWith(File.pathSeparator) ? "" : File.separator);
-    urls.add(new File(classesDir).toURL());
+    urls.add(new File(classesDir).toURI().toURL());
 
     if (getLog().isDebugEnabled()) {
       getLog().debug("Adding to classpath classes dir: " + classesDir);
@@ -548,7 +552,7 @@ public class JspcMojo extends AbstractMojo {
             "Adding to classpath dependency file: " + filePath);
         }
 
-        urls.add(artifact.getFile().toURL());
+        urls.add(artifact.getFile().toURI().toURL());
       }
     }
   }
@@ -559,7 +563,7 @@ public class JspcMojo extends AbstractMojo {
     File baseDir = project.getBasedir().getCanonicalFile();
     File defaultWebAppSrcDir = new File(baseDir, "src/main/webapp").getCanonicalFile();
     File webAppSrcDir = new File(webAppSourceDirectory).getCanonicalFile();
-    File defaultWebXml = new File(defaultWebAppSrcDir, "web.xml").getCanonicalFile();
+    File defaultWebXml = new File(defaultWebAppSrcDir, WEB_XML).getCanonicalFile();
 
     //If the web.xml has been changed from the default, try that
     File webXmlFile = new File(webXml).getCanonicalFile();
@@ -570,7 +574,7 @@ public class JspcMojo extends AbstractMojo {
 
     //If the web app src directory has not been changed from the default, use whatever
     //is set for the web.xml location
-    file = new File(webAppSrcDir, "web.xml");
+    file = new File(webAppSrcDir, WEB_XML);
     return file;
   }
   
