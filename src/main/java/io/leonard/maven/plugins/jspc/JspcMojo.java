@@ -14,7 +14,7 @@
 //========================================================================
 package io.leonard.maven.plugins.jspc;
 
-import org.apache.jasper.JspC;
+import org.apache.jasper.*;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -41,15 +41,14 @@ import org.codehaus.plexus.util.StringUtils;
  * but has the following improvements:
  * </p>
  * <ul>
- *  <li>Faster: on my test project I was able to cut down the compilation
- *      time by about 40%
+ *  <li>Faster: ability of multi-threading
  *  </li>
  *  <li>Indication of the progress of the compilation by showing which JSP
  *      is currently being compiled
  *  </li>
  * </ul>
  * <p>
- * The compiler used in this plugin the Apache Jasper 8.5.8.
+ * The compiler used in this plugin the Apache Jasper 9.0.1 but it can be overriding.
  * </p>
  *
  * @author janb
@@ -68,7 +67,7 @@ public class JspcMojo extends AbstractMojo {
   /**
    * The maven project.
    *
-   * @parameter expression="${project}"
+   * @parameter property="project"
    * @required
    * @readonly
    */
@@ -149,7 +148,7 @@ public class JspcMojo extends AbstractMojo {
   /**
    * The location of the compiled classes for the webapp
    *
-   * @parameter expression="${project.build.outputDirectory}"
+   * @parameter property="project.build.outputDirectory"
    */
   private File classesDirectory;
   /**
@@ -231,7 +230,7 @@ public class JspcMojo extends AbstractMojo {
   /**
    * Version of Java used to compile the jsp files.
    *
-   * @parameter default-value="1.7"
+   * @parameter default-value="1.8"
    */
   private String compilerVersion;
   
@@ -280,7 +279,7 @@ public class JspcMojo extends AbstractMojo {
     }
   }
 
-  public void compile() throws Exception {
+  public void compile() throws IOException, InterruptedException, MojoExecutionException, ExecutionException {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
 
     ArrayList urls = new ArrayList();
@@ -355,7 +354,7 @@ public class JspcMojo extends AbstractMojo {
     jspc.setJavaEncoding(javaEncoding);
     jspc.setFailOnError(stopAtFirstError);
     jspc.setPoolingEnabled(enableJspTagPooling);
-    jspc.setTrimSpaces(trimSpaces);
+    jspc.setTrimSpaces(trimSpaces ? TrimSpacesOption.TRUE : TrimSpacesOption.FALSE);
     jspc.setGenStringAsCharArray(genStringAsCharArray);
     jspc.setCompilerSourceVM(compilerVersion);
     jspc.setCompilerTargetVM(compilerVersion);
@@ -409,8 +408,6 @@ public class JspcMojo extends AbstractMojo {
   /**
    * Until Jasper supports the option to generate the srcs in a different dir
    * than the classes, this is the best we can do.
-   *
-   * @throws Exception
    */
   public void cleanupSrcs() {
     // delete the .java files - depending on keepGenerated setting
@@ -418,13 +415,7 @@ public class JspcMojo extends AbstractMojo {
       File generatedClassesDir = new File(generatedClasses);
 
       if (generatedClassesDir.exists() && generatedClassesDir.isDirectory()) {
-        delete(generatedClassesDir, new FileFilter() {
-
-          @Override
-          public boolean accept(File f) {
-            return f.isDirectory() || f.getName().endsWith(".java");
-          }
-        });
+        delete(generatedClassesDir, f -> f.isDirectory() || f.getName().endsWith(".java"));
       }
     }
   }
