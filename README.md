@@ -30,7 +30,7 @@ This plugin precompiles JSPs. It is a fork of jetty-jspc-maven-plugin and config
 
 It has the following improvements compared to jetty-jspc-maven-plugin:
 
-* Faster: on my test project I was able to cut down the compilation time by about 40%
+* Faster: can be configured to run multi-threaded. For a speed comparison read the blog post below.
 * More descriptive error messages: Under Maven 3 this plugin shows a clear indication of what caused the error and which file it is in
 * Indication of the progress of the compilation by showing which JSP is currently being compiled
 
