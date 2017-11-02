@@ -14,22 +14,17 @@
 //========================================================================
 package io.leonard.maven.plugins.jspc;
 
-import org.apache.jasper.JspC;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
-import org.eclipse.jetty.util.IO;
-
 import java.io.*;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-import org.codehaus.plexus.util.DirectoryScanner;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.jasper.JspC;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.*;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.*;
+import org.eclipse.jetty.util.IO;
 
 /**
  * <p>
@@ -68,7 +63,7 @@ public class JspcMojo extends AbstractMojo {
   /**
    * The maven project.
    *
-   * @parameter expression="${project}"
+   * @parameter property="project"
    * @required
    * @readonly
    */
@@ -149,7 +144,7 @@ public class JspcMojo extends AbstractMojo {
   /**
    * The location of the compiled classes for the webapp
    *
-   * @parameter expression="${project.build.outputDirectory}"
+   * @parameter property="project.build.outputDirectory"
    */
   private File classesDirectory;
   /**
