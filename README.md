@@ -32,11 +32,61 @@ It has the following improvements compared to jetty-jspc-maven-plugin:
 
 * Faster: can be configured to run multi-threaded. For a speed comparison read the blog post below.
 * More descriptive error messages: Under Maven 3 this plugin shows a clear indication of what caused the error and which file it is in
-* Indication of the progress of the compilation by showing which JSP is currently being compiled
+* Not stop at the first error (depends plugin configuration)
 
-The compiler used in this plugin is [Apache Jasper 9.0.1](http://search.maven.org/#artifactdetails%7Corg.apache.tomcat%7Ctomcat-jasper%7C9.0.1%7Cjar).
+The compiler used by default in this plugin is [Apache Jasper 9.0.1](http://search.maven.org/#artifactdetails%7Corg.apache.tomcat%7Ctomcat-jasper%7C9.0.1%7Cjar).
+
+If the Jasper compiler version needs to be overloaded, the plugin must be configured as follows:
+
+```xml
+<build>
+....
+<plugin>
+ <groupId>io.leonard.maven.plugins</groupId>
+  <artifactId>jspc-maven-plugin</artifactId>
+  <version>${ENTER_VERSION_HERE}</version>
+   <executions>
+    <execution>
+     <id>jspc</id>
+     <goals>
+     <goal>compile</goal>
+    </goals>
+    <configuration>
+    </configuration>
+  </execution>
+ </executions>
+
+ <dependencies>
+  	<dependency>
+  		<groupId>org.apache.tomcat</groupId>
+  		<artifactId>tomcat-jasper</artifactId>
+  		<version>${ENTER_JASPER_VERSION_HERE}</version>
+  		<exclusions>
+  			<exclusion>
+  				<groupId>org.eclipse.jdt.core.compiler</groupId>
+  				<artifactId>ecj</artifactId>
+  			</exclusion>
+  		</exclusions>
+  	</dependency>
+
+  	<dependency>
+  		<groupId>org.eclipse.jdt.core.compiler</groupId>
+  		<artifactId>ecj</artifactId>
+  		<version>4.6.1</version>
+  	</dependency>
+  </dependencies>
+</plugin>
+...
+</build>
+```
 
 Full documentation of the goal is available at http://leonardehrenfried.github.com/jspc-maven-plugin/compile-mojo.html
+
+## Compatibility Matrix
+
+* 3.X version of jspc-maven-plugin : needs Java >= 1.8, Jasper only 9.X
+* 2.X version of jspc-maven-plugin : needs Java >= 1.7, Jasper only 8.X
+* 1.X version of jspc-maven-plugin : needs Java >= 1.5, Jasper only 6.X, 7.X
 
 ## Comparison of precompiler plugins
 

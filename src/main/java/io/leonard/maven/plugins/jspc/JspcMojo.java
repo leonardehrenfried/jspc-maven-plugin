@@ -41,14 +41,11 @@ import org.codehaus.plexus.util.StringUtils;
  * but has the following improvements:
  * </p>
  * <ul>
- *  <li>Faster: ability of multi-threading
- *  </li>
- *  <li>Indication of the progress of the compilation by showing which JSP
- *      is currently being compiled
- *  </li>
+ *  <li>Faster: ability of multi-threading see <b>threads</b> parameter</li> 
+ *  <li>Not stop at the first error : see <b>stopAtFirstError</b> parameter</li>
  * </ul>
  * <p>
- * The compiler used in this plugin the Apache Jasper 9.0.1 but it can be overriding.
+ * The compiler used in this plugin the Apache Jasper 9.0.1 but it can be overloaded.
  * </p>
  *
  * @author janb
