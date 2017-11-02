@@ -1,4 +1,7 @@
 sudo: false
+jdk:
+ - oraclejdk9
+ - oraclejdk8
 language: java
 install: true
-script: mvn test
+script: mvn test --quiet
