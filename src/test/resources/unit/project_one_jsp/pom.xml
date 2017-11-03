@@ -13,7 +13,7 @@
     <plugins>
       <plugin>
         <groupId>io.leonard.maven.plugins</groupId>
-  		<artifactId>jspc-maven-plugin</artifactId>
+        <artifactId>jspc-maven-plugin</artifactId>
       </plugin>
     </plugins>
   </build>

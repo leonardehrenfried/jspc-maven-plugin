@@ -13,11 +13,11 @@
     <plugins>
       <plugin>
         <groupId>io.leonard.maven.plugins</groupId>
-  		<artifactId>jspc-maven-plugin</artifactId>
-  		<configuration>
-  			<threads>4</threads>
-  			<webAppSourceDirectory>${project.basedir}/../project_many_jsp/src/main/webapp</webAppSourceDirectory>
-  		</configuration>
+        <artifactId>jspc-maven-plugin</artifactId>
+        <configuration>
+          <threads>4</threads>
+          <webAppSourceDirectory>${project.basedir}/../project_many_jsp/src/main/webapp</webAppSourceDirectory>
+        </configuration>
       </plugin>
     </plugins>
   </build>
