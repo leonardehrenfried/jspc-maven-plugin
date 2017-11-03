@@ -11,7 +11,7 @@ import org.junit.*;
 /**
  * Test {@link JspcMojo} in multithreading mode
  */
-public class TestJspcMojo_multithreading {
+public class TestJspcMojoMultithreading {
 
   @Rule
   public MojoRule rule = new MojoRule();
