@@ -3,10 +3,13 @@ package io.leonard.maven.plugins.jspc;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.apache.maven.plugin.testing.MojoRule;
-import org.junit.*;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Test {@link JspcMojo}
@@ -34,12 +37,18 @@ public class TestJspcMojo {
     // Given
     File oneJspProject = new File("target/test-classes/unit/project_one_jsp");
     Path expectedWebfrag = Paths.get("target/test-classes/unit/project_one_jsp/src/assert/webfrag.xml");
-
     // When
     rule.executeMojo(oneJspProject, "compile");
 
     // Then
     Path webfrag = Paths.get("target/test-classes/unit/project_one_jsp/target/webfrag.xml");
-    assertThat(Files.readAllBytes(webfrag)).isEqualTo(Files.readAllBytes(expectedWebfrag));
+    
+    byte[] actualWebfrag = Files.readAllBytes(webfrag);
+	byte[] expectedWebFrag = Files.readAllBytes(expectedWebfrag);
+//	String actualWebFragStr = new String(actualWebfrag).replaceAll("\n", "\r\n");
+	
+//	String expectedWebFragStr = new String(expectedWebFrag);
+	assertThat(actualWebfrag).isEqualTo(expectedWebFrag);
+//	assertThat(actualWebFragStr).isEqualTo(expectedWebFragStr);
   }
 }

@@ -14,16 +14,34 @@
 //========================================================================
 package io.leonard.maven.plugins.jspc;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.util.concurrent.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.jasper.JasperException;
 import org.apache.jasper.JspC;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.*;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.*;
+import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.jetty.util.IO;
 
 /**
@@ -318,17 +336,19 @@ public class JspcMojo extends AbstractMojo {
     return jspFilesList;
   }
 
-  private List<JspcWorker> initJspcWorkers(StringBuilder classpathStr, String[] jspFiles, List<String> jspFilesList) {
+  private List<JspcWorker> initJspcWorkers(StringBuilder classpathStr, String[] jspFiles, List<String> jspFilesList) throws JasperException, IOException {
     List<JspcWorker> workers = new ArrayList<>();
     int minItem = jspFiles.length / threads;
     int maxItem = minItem +1;
     int threadsWithMaxItems = jspFiles.length - threads * minItem;
     int start = 0;
+    JspCContextAccessor topJspC = initJspc(classpathStr, -1, null);
     for (int index=0; index<threads; index++){
       int itemsCount = (index < threadsWithMaxItems ? maxItem : minItem);
       int end = start + itemsCount;
       List<String> jspFilesSubList = jspFilesList.subList(start, end);
-      JspcWorker worker = new JspcWorker(initJspc(classpathStr, index), jspFilesSubList);
+      JspC firstJspC = initJspc(classpathStr, index, topJspC);
+	JspcWorker worker = new JspcWorker(firstJspC, jspFilesSubList);
       workers.add(worker);
       start = end;
       getLog().info("Number of jsps for thread " + (index+1) + " : " + jspFilesSubList.size());
@@ -336,8 +356,8 @@ public class JspcMojo extends AbstractMojo {
     return workers;
   }
 
-  private JspC initJspc(StringBuilder classpathStr, int threadIndex) {
-    JspC jspc = new JspC();
+  private JspCContextAccessor initJspc(StringBuilder classpathStr, int threadIndex, JspCContextAccessor topJspC) throws IOException, JasperException {
+	  JspCContextAccessor jspc = new JspCContextAccessor();
     jspc.setWebXmlFragment(getwebXmlFragmentFilename(threadIndex));
     jspc.setUriroot(webAppSourceDirectory);
     jspc.setPackage(packageRoot);
@@ -354,7 +374,13 @@ public class JspcMojo extends AbstractMojo {
     jspc.setGenStringAsCharArray(genStringAsCharArray);
     jspc.setCompilerSourceVM(compilerVersion);
     jspc.setCompilerTargetVM(compilerVersion);
-
+    if ( topJspC == null) {
+    	jspc.initClassLoader();
+    	jspc.initServletContext();
+    }else {
+    	jspc.initContext(topJspC);
+    }
+    	
 
     // JspC#setExtensions() does not exist, so
     // always set concrete list of files that will be processed.
