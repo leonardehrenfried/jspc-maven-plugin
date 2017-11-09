@@ -37,7 +37,6 @@ public class TestJspcMojo {
     // Given
     File oneJspProject = new File("target/test-classes/unit/project_one_jsp");
     Path expectedWebfrag = Paths.get("target/test-classes/unit/project_one_jsp/src/assert/webfrag.xml");
-    System.setProperty("line.separator", "\r\n");
     // When
     rule.executeMojo(oneJspProject, "compile");
 
@@ -46,10 +45,10 @@ public class TestJspcMojo {
     
     byte[] actualWebfrag = Files.readAllBytes(webfrag);
 	byte[] expectedWebFrag = Files.readAllBytes(expectedWebfrag);
-	String actualWebFragStr = new String(actualWebfrag).replaceAll("\n", "\r\n");
+//	String actualWebFragStr = new String(actualWebfrag).replaceAll("\n", "\r\n");
 	
-	String expectedWebFragStr = new String(expectedWebFrag);
-//	assertThat(actualWebfrag).isEqualTo(expectedWebFrag);
-	assertThat(actualWebFragStr).isEqualTo(expectedWebFragStr);
+//	String expectedWebFragStr = new String(expectedWebFrag);
+	assertThat(actualWebfrag).isEqualTo(expectedWebFrag);
+//	assertThat(actualWebFragStr).isEqualTo(expectedWebFragStr);
   }
 }
