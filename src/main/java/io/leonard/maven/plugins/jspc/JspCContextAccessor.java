@@ -10,45 +10,46 @@ import org.apache.jasper.servlet.JspCServletContext;
 
 public class JspCContextAccessor extends JspC {
 
-	public JspCContextAccessor() {
-		super();
-	}
-	protected void initServletContext() throws JasperException, IOException {
-		initServletContext(this.loader);
-	}
-	
-	@Override
-	protected void initServletContext(ClassLoader classLoader)
-			throws IOException, JasperException {
-		super.initServletContext(classLoader);
-	}
+  public JspCContextAccessor() {
+    super();
+  }
 
-	@Override
-	protected ClassLoader initClassLoader() throws IOException {
-		return super.initClassLoader();
-	}
-	
-	protected JspCServletContext getContext() {
-		return super.context;
-	}
-	
-	protected ClassLoader getLoader() {
-		return this.loader;
-	}
-	
-	protected void initContext(JspCContextAccessor topJspC) throws IOException, JasperException {
-		this.context = topJspC.context;
-		
+  protected void initServletContext() throws JasperException, IOException {
+    initServletContext(this.loader);
+  }
 
-		scanner = topJspC.scanner;
-        initTldScanner(context, getLoader());
+  @Override
+  protected void initServletContext(ClassLoader classLoader)
+    throws IOException, JasperException {
+    super.initServletContext(classLoader);
+  }
 
-       
-        tldCache = (TldCache) context.getAttribute(TldCache.SERVLET_CONTEXT_ATTRIBUTE_NAME);
-        rctxt = topJspC.rctxt;
-        jspConfig = new JspConfig(context);
-        tagPluginManager = topJspC.tagPluginManager;
-	}
-	
+  @Override
+  protected ClassLoader initClassLoader() throws IOException {
+    return super.initClassLoader();
+  }
+
+  protected JspCServletContext getContext() {
+    return super.context;
+  }
+
+  protected ClassLoader getLoader() {
+    return this.loader;
+  }
+
+  protected void initContext(JspCContextAccessor topJspC) throws IOException, JasperException {
+    this.context = topJspC.context;
+
+
+    scanner = topJspC.scanner;
+    initTldScanner(context, getLoader());
+
+
+    tldCache = (TldCache) context.getAttribute(TldCache.SERVLET_CONTEXT_ATTRIBUTE_NAME);
+    rctxt = topJspC.rctxt;
+    jspConfig = new JspConfig(context);
+    tagPluginManager = topJspC.tagPluginManager;
+  }
+
 
 }

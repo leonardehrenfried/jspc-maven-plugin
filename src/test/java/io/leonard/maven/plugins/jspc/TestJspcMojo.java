@@ -42,13 +42,13 @@ public class TestJspcMojo {
 
     // Then
     Path webfrag = Paths.get("target/test-classes/unit/project_one_jsp/target/webfrag.xml");
-    
+
     byte[] actualWebfrag = Files.readAllBytes(webfrag);
-	byte[] expectedWebFrag = Files.readAllBytes(expectedWebfrag);
+    byte[] expectedWebFrag = Files.readAllBytes(expectedWebfrag);
 //	String actualWebFragStr = new String(actualWebfrag).replaceAll("\n", "\r\n");
-	
+
 //	String expectedWebFragStr = new String(expectedWebFrag);
-	assertThat(actualWebfrag).isEqualTo(expectedWebFrag);
+    assertThat(actualWebfrag).isEqualTo(expectedWebFrag);
 //	assertThat(actualWebFragStr).isEqualTo(expectedWebFragStr);
   }
 }

@@ -28,12 +28,12 @@ public class TestJspcMojoMultithreading {
 
     // Then
     assertThat(Files.readAllBytes(Paths.get("target/test-classes/unit/project_many_jsp_4_threads/target/classes/jsp/jsp/_01_jsp.class")))
-        .isEqualTo(Files.readAllBytes(Paths.get("target/test-classes/unit/project_many_jsp/target/classes/jsp/jsp/_01_jsp.class")));
+      .isEqualTo(Files.readAllBytes(Paths.get("target/test-classes/unit/project_many_jsp/target/classes/jsp/jsp/_01_jsp.class")));
     assertThat(Files.readAllBytes(Paths.get("target/test-classes/unit/project_many_jsp_4_threads/target/classes/jsp/jsp/_02_jsp.class")))
-        .isEqualTo(Files.readAllBytes(Paths.get("target/test-classes/unit/project_many_jsp/target/classes/jsp/jsp/_02_jsp.class")));
+      .isEqualTo(Files.readAllBytes(Paths.get("target/test-classes/unit/project_many_jsp/target/classes/jsp/jsp/_02_jsp.class")));
     assertThat(Files.readAllBytes(Paths.get("target/test-classes/unit/project_many_jsp_4_threads/target/classes/jsp/jsp/_03_jsp.class")))
-        .isEqualTo(Files.readAllBytes(Paths.get("target/test-classes/unit/project_many_jsp/target/classes/jsp/jsp/_03_jsp.class")));
+      .isEqualTo(Files.readAllBytes(Paths.get("target/test-classes/unit/project_many_jsp/target/classes/jsp/jsp/_03_jsp.class")));
     assertThat(Files.readAllBytes(Paths.get("target/test-classes/unit/project_many_jsp_4_threads/target/classes/jsp/jsp/_04_jsp.class")))
-        .isEqualTo(Files.readAllBytes(Paths.get("target/test-classes/unit/project_many_jsp/target/classes/jsp/jsp/_04_jsp.class")));
+      .isEqualTo(Files.readAllBytes(Paths.get("target/test-classes/unit/project_many_jsp/target/classes/jsp/jsp/_04_jsp.class")));
   }
 }
