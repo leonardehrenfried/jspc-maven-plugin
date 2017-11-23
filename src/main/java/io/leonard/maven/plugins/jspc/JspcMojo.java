@@ -33,6 +33,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Joiner;
 import org.apache.jasper.JasperException;
 import org.apache.jasper.JspC;
 import org.apache.maven.artifact.Artifact;
@@ -423,7 +424,13 @@ public class JspcMojo extends AbstractMojo {
     scanner.setCaseSensitive(false);
     scanner.scan();
 
-    return scanner.getIncludedFiles();
+    String[] includedFiles = scanner.getIncludedFiles();
+
+    getLog().debug(String.format("Included files returned from directory scan: %s", StringUtils.join(includedFiles, ",")));
+    getLog().debug(String.format("Excluded files returned from directory scan: %s", StringUtils.join(scanner.getExcludedFiles(), ",")));
+    getLog().debug(String.format("Excluded directories returned from directory scan: %s", StringUtils.join(scanner.getExcludedDirectories(), ",")));
+
+    return includedFiles;
   }
 
   /**
