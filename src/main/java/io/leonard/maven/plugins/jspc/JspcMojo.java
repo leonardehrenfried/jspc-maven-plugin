@@ -317,7 +317,7 @@ public class JspcMojo extends AbstractMojo {
 
     String[] jspFiles = getJspFiles(webAppSourceDirectory);
     if (verbose) {
-      getLog().info("Files selected to precompile: " + jspFiles);
+      getLog().info("Files selected to precompile: " + StringUtils.join(jspFiles,", "));
     }
 
     ExecutorService executor = Executors.newFixedThreadPool(threads);
