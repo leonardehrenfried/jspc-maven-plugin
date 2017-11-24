@@ -30,10 +30,10 @@ public class TestIncludesExcludesMojo {
     rule.executeMojo(includeExcludeProject, "compile");
 
     // Then
-    Path jspPath = Paths.get(TARGET_PATH + "_01_jsp.class");
+    Path jspPath = Paths.get(TARGET_PATH + "included_jsp.class");
     assertThat(jspPath).exists();
 
-    Path jspfPath = Paths.get(TARGET_PATH + "_02_jspf.class");
+    Path jspfPath = Paths.get(TARGET_PATH + "excluded_jspf.class");
     assertThat(jspfPath).doesNotExist();
   }
 
