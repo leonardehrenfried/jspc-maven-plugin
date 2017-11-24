@@ -18,19 +18,22 @@ public class TestIncludesExcludesMojo {
   @Rule
   public MojoRule rule = new MojoRule();
 
+  private String PROJECT_PATH = "target/test-classes/unit/project_include_exclude";
+  private String TARGET_PATH = PROJECT_PATH + "/target/classes/jsp/jsp/";
+
   @Test
   public void shouldRespectIncludesAndExcludes() throws Exception {
     // Given
-    File oneJspProject = new File("target/test-classes/unit/project_include_exclude");
+    File includeExcludeProject = new File(PROJECT_PATH);
 
     // When
-    rule.executeMojo(oneJspProject, "compile");
+    rule.executeMojo(includeExcludeProject, "compile");
 
     // Then
-    Path jspPath = Paths.get("target/test-classes/unit/project_include_exclude/target/classes/jsp/jsp/_01_jsp.class");
+    Path jspPath = Paths.get(TARGET_PATH + "_01_jsp.class");
     assertThat(jspPath).exists();
 
-    Path jspfPath = Paths.get("target/test-classes/unit/project_include_exclude/target/classes/jsp/jsp/_02_jspf.class");
+    Path jspfPath = Paths.get(TARGET_PATH + "_02_jspf.class");
     assertThat(jspfPath).doesNotExist();
   }
 
