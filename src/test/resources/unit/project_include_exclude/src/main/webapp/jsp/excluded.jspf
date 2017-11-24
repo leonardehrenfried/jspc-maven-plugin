@@ -1,12 +1,12 @@
 <html>
 
   <%
-    String hello = "02";
-  %>
-	
+    This file intentionally contains a syntax error. It's excluded so should not compile and therefore the test
+    should pass anyway.
+
 	<body>
 		Hello <%=hello %>
-	</body>  
+	</body>
 
 </html>
 

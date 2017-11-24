@@ -3,10 +3,10 @@
   <%
     String hello = "01";
   %>
-	
+
 	<body>
 		Hello <%=hello %>
-	</body>  
+	</body>
 
 </html>
 
