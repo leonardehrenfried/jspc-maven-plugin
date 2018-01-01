@@ -19,8 +19,7 @@ public class JspCContextAccessor extends JspC {
   }
 
   @Override
-  protected void initServletContext(ClassLoader classLoader)
-    throws IOException, JasperException {
+  protected void initServletContext(ClassLoader classLoader) throws IOException, JasperException {
     super.initServletContext(classLoader);
   }
 
@@ -37,19 +36,14 @@ public class JspCContextAccessor extends JspC {
     return this.loader;
   }
 
-  protected void initContext(JspCContextAccessor topJspC) throws IOException, JasperException {
+  protected void initContext(JspCContextAccessor topJspC) {
     this.context = topJspC.context;
-
-
     scanner = topJspC.scanner;
+    
     initTldScanner(context, getLoader());
-
-
     tldCache = (TldCache) context.getAttribute(TldCache.SERVLET_CONTEXT_ATTRIBUTE_NAME);
     rctxt = topJspC.rctxt;
     jspConfig = new JspConfig(context);
     tagPluginManager = topJspC.tagPluginManager;
   }
-
-
 }

@@ -33,7 +33,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Joiner;
 import org.apache.jasper.JasperException;
 import org.apache.jasper.JspC;
 import org.apache.maven.artifact.Artifact;
@@ -66,12 +65,12 @@ import org.eclipse.jetty.util.IO;
  * The compiler used in this plugin the Apache Jasper 8.5.8.
  * </p>
  *
- * @author janb
  * @author <a href="mailto:leonard.ehrenfrie@web.de">Leonard Ehrenfried</a>
  * @goal compile
  * @phase process-classes
  * @requiresDependencyResolution compile
  * @description Runs jspc compiler to produce .java and .class files
+ * @threadSafe true
  */
 public class JspcMojo extends AbstractMojo {
 
@@ -296,19 +295,19 @@ public class JspcMojo extends AbstractMojo {
   public void compile() throws Exception {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
 
-    ArrayList urls = new ArrayList();
+    ArrayList<URL> urls = new ArrayList<URL>();
     setUpClassPath(urls);
-    URLClassLoader ucl = new URLClassLoader((URL[]) urls.toArray(new URL[0]), currentClassLoader);
+    URLClassLoader ucl = new URLClassLoader(urls.toArray(new URL[0]), currentClassLoader);
     StringBuilder classpathStr = new StringBuilder();
 
     for (int i = 0; i < urls.size(); i++) {
       if (getLog().isDebugEnabled()) {
         getLog().debug("webappclassloader contains: " + urls.get(i));
       }
-      classpathStr.append(((URL) urls.get(i)).getFile());
+      classpathStr.append(urls.get(i).getFile());
       if (getLog().isDebugEnabled()) {
         getLog().debug(
-          "added to classpath: " + ((URL) urls.get(i)).getFile());
+          "added to classpath: " + urls.get(i).getFile());
       }
       classpathStr.append(System.getProperty("path.separator"));
     }
@@ -413,9 +412,9 @@ public class JspcMojo extends AbstractMojo {
     }
   }
 
-  private String[] getJspFiles(String webAppSourceDirectory) {
+  private String[] getJspFiles(String webAppSrcDir) {
     DirectoryScanner scanner = new DirectoryScanner();
-    scanner.setBasedir(new File(webAppSourceDirectory));
+    scanner.setBasedir(new File(webAppSrcDir));
     if ((excludes != null) && (excludes.length != 0)) {
       scanner.setExcludes(excludes);
     }
@@ -436,8 +435,6 @@ public class JspcMojo extends AbstractMojo {
   /**
    * Until Jasper supports the option to generate the srcs in a different dir
    * than the classes, this is the best we can do.
-   *
-   * @throws Exception
    */
   public void cleanupSrcs() {
     // delete the .java files - depending on keepGenerated setting
@@ -478,7 +475,7 @@ public class JspcMojo extends AbstractMojo {
    * If you dont specify the insertionMarker, then the fragment will be
    * inserted at the end of the file just before the &lt;/webapp&gt;
    *
-   * @throws Exception
+   * @throws IOException by {@link JspcMojo#writeStartOfWebXmlMergedFile} method when reading xml file
    */
   public void mergeWebXml() throws IOException {
     if (mergeFragment) {
@@ -566,9 +563,9 @@ public class JspcMojo extends AbstractMojo {
    * classpath.
    *
    * @param urls a list to which to add the urls of the dependencies
-   * @throws Exception
+   * @throws IOException
    */
-  private void setUpClassPath(List urls) throws IOException {
+  private void setUpClassPath(List<URL> urls) throws IOException {
     String classesDir = classesDirectory.getCanonicalPath();
     classesDir = classesDir
       + (classesDir.endsWith(File.pathSeparator) ? "" : File.separator);
@@ -578,7 +575,7 @@ public class JspcMojo extends AbstractMojo {
       getLog().debug("Adding to classpath classes dir: " + classesDir);
     }
 
-    for (Iterator iter = project.getArtifacts().iterator(); iter.hasNext(); ) {
+    for (Iterator<?> iter = project.getArtifacts().iterator(); iter.hasNext(); ) {
       Artifact artifact = (Artifact) iter.next();
 
       // Include runtime and compile time libraries
