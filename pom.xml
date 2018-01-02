@@ -189,6 +189,40 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.9.1</version>
+        <configuration>
+        	<tags>
+            <tag>
+              <name>goal</name>
+              <placement>t</placement>
+              <head>Maven goal:</head>
+            </tag>
+            <tag>
+              <name>phase</name>
+              <placement>t</placement>
+              <head>Maven phase:</head>
+            </tag>
+            <tag>
+              <name>requiresDependencyResolution</name>
+              <placement>t</placement>
+              <head>Maven requires dependency resolution:</head>
+            </tag>
+            <tag>
+              <name>description</name>
+              <placement>t</placement>
+              <head>Maven goal description:</head>
+            </tag>
+            <tag>
+              <name>requiresProject</name>
+              <placement>t</placement>
+              <head>Maven goal requires project:</head>
+            </tag>
+            <tag>
+              <name>threadSafe</name>
+              <placement>t</placement>
+              <head>Maven goal thread safe:</head>
+            </tag>
+        </tags>
+        </configuration>
         <executions>
           <execution>
             <id>attach-javadocs</id>
