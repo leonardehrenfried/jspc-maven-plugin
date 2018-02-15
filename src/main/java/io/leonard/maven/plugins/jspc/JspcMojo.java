@@ -14,34 +14,17 @@
 //========================================================================
 package io.leonard.maven.plugins.jspc;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.*;
 
-import org.apache.jasper.JasperException;
-import org.apache.jasper.JspC;
+import org.apache.jasper.*;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.*;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.DirectoryScanner;
-import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.util.*;
+import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.eclipse.jetty.util.IO;
 
 /**
@@ -246,6 +229,16 @@ public class JspcMojo extends AbstractMojo {
    * @parameter default-value="1.7"
    */
   private String compilerVersion;
+  
+  /**
+   * Name of the compiler class used to compile the jsp files.
+   * If threads parameter is greater than 4, then maybe the compilerName "org.apache.jasper.compiler.JDTCompilerParallel" will be more efficient
+   *
+   * @parameter default-value="org.apache.jasper.compiler.JDTCompiler"
+   */
+  private String compilerName;
+  
+  private Map<String,NameEnvironmentAnswer> resourcesCache = new ConcurrentHashMap<>();
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -270,6 +263,7 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("trimSpaces=" + trimSpaces);
       getLog().info("genStringAsCharArray=" + genStringAsCharArray);
       getLog().info("compilerVersion=" + compilerVersion);
+      getLog().info("compilerName=" + compilerName);
     }
     try {
       long start = System.currentTimeMillis();
@@ -373,13 +367,14 @@ public class JspcMojo extends AbstractMojo {
     jspc.setGenStringAsCharArray(genStringAsCharArray);
     jspc.setCompilerSourceVM(compilerVersion);
     jspc.setCompilerTargetVM(compilerVersion);
+    jspc.setCompilerName(compilerName);
+    jspc.setResourcesCache(resourcesCache);
     if (topJspC == null) {
       jspc.initClassLoader();
       jspc.initServletContext();
     } else {
       jspc.initContext(topJspC);
     }
-
 
     // JspC#setExtensions() does not exist, so
     // always set concrete list of files that will be processed.
