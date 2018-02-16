@@ -3,12 +3,12 @@ package org.apache.jasper.compiler;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
-public class TestJDTCompilerParallel {
+public class TestParallelJDTCompiler {
 
   @Test
   public void should_return_false_when_isCheckFileNecessary_input_with_parent_jsp_package_01jsp() {
     // Given
-    JDTCompilerParallel compiler = new JDTCompilerParallel();
+    ParallelJDTCompiler compiler = new ParallelJDTCompiler();
     char[] packageName = "01.jsp".toCharArray();
 
     // When
@@ -21,7 +21,7 @@ public class TestJDTCompilerParallel {
   @Test
   public void should_return_true_when_isCheckFileNecessary_input_with_parent_null_package_java() {
     // Given
-    JDTCompilerParallel compiler = new JDTCompilerParallel();
+    ParallelJDTCompiler compiler = new ParallelJDTCompiler();
     char[] packageName = "java".toCharArray();
 
     // When
@@ -34,7 +34,7 @@ public class TestJDTCompilerParallel {
   @Test
   public void should_return_true_when_isCheckFileNecessary_input_with_parent_java_package_lang() {
     // Given
-    JDTCompilerParallel compiler = new JDTCompilerParallel();
+    ParallelJDTCompiler compiler = new ParallelJDTCompiler();
     char[] packageName = "lang".toCharArray();
 
     // When
@@ -47,7 +47,7 @@ public class TestJDTCompilerParallel {
   @Test
   public void should_return_true_when_isCheckFileNecessary_input_with_parent_javax_servlet_package_http() {
     // Given
-    JDTCompilerParallel compiler = new JDTCompilerParallel();
+    ParallelJDTCompiler compiler = new ParallelJDTCompiler();
     char[] packageName = "http".toCharArray();
 
     // When
@@ -60,7 +60,7 @@ public class TestJDTCompilerParallel {
   @Test
   public void should_return_false_when_isCheckFileNecessary_input_with_parent_java_util_package_Hashset() {
     // Given
-    JDTCompilerParallel compiler = new JDTCompilerParallel();
+    ParallelJDTCompiler compiler = new ParallelJDTCompiler();
     char[] packageName = "Hashset".toCharArray();
 
     // When
@@ -73,7 +73,7 @@ public class TestJDTCompilerParallel {
   @Test
   public void should_return_true_when_isCheckFileNecessary_input_with_parent_org_apache_jsp_tag_package_a_tagfile() {
     // Given
-    JDTCompilerParallel compiler = new JDTCompilerParallel();
+    ParallelJDTCompiler compiler = new ParallelJDTCompiler();
     char[] packageName = "a_tagfile".toCharArray();
 
     // When

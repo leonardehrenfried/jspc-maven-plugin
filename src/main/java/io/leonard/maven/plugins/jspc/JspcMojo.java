@@ -232,7 +232,7 @@ public class JspcMojo extends AbstractMojo {
   
   /**
    * Name of the compiler class used to compile the jsp files.
-   * If threads parameter is greater than 4, then maybe the compilerName "org.apache.jasper.compiler.JDTCompilerParallel" will be more efficient
+   * If threads parameter is greater than 4, then maybe the compilerName "org.apache.jasper.compiler.ParallelJDTCompiler" will be more efficient
    *
    * @parameter default-value="org.apache.jasper.compiler.JDTCompiler"
    */

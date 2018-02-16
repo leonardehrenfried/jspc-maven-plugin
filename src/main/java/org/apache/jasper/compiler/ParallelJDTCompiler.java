@@ -35,9 +35,9 @@ import io.leonard.maven.plugins.jspc.JspCContextAccessor;
  * Based on {@link JDTCompiler}.<br>
  * Try to avoid some synchronization with this compiler when it use in parallel (with more than 4 threads)
  */
-public class JDTCompilerParallel extends org.apache.jasper.compiler.Compiler {
+public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
 
-  private final Log log = LogFactory.getLog(JDTCompilerParallel.class);
+  private final Log log = LogFactory.getLog(ParallelJDTCompiler.class);
   ClassLoader classLoader;
   String sourceFile;
   String outputDir;
