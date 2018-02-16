@@ -11,7 +11,7 @@ import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 public class JspCContextAccessor extends JspC {
 
   private Map<String, NameEnvironmentAnswer> resourcesCache;
-  private String compilerName;
+  private String compilerClass;
 
   public JspCContextAccessor() {
     super();
@@ -42,12 +42,12 @@ public class JspCContextAccessor extends JspC {
     this.resourcesCache = resourcesCache;
   }
 
-  public String getCompilerName() {
-    return compilerName;
+  public String getcompilerClass() {
+    return compilerClass;
   }
 
-  public void setCompilerName(String compilerName) {
-    this.compilerName = compilerName;
+  public void setcompilerClass(String compilerClass) {
+    this.compilerClass = compilerClass;
   }
 
   protected void initContext(JspCContextAccessor topJspC) {
@@ -63,6 +63,6 @@ public class JspCContextAccessor extends JspC {
 
   @Override
   public String getCompilerClassName() {
-    return getCompilerName();
+    return getcompilerClass();
   }
 }

@@ -17,7 +17,7 @@
         <configuration>
           <threads>4</threads>
           <webAppSourceDirectory>${project.basedir}/../project_many_jsp/src/main/webapp</webAppSourceDirectory>
-          <compilerName>org.apache.jasper.compiler.ParallelJDTCompiler</compilerName>
+          <compilerClass>org.apache.jasper.compiler.ParallelJDTCompiler</compilerClass>
         </configuration>
       </plugin>
     </plugins>

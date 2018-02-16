@@ -232,11 +232,11 @@ public class JspcMojo extends AbstractMojo {
   
   /**
    * Name of the compiler class used to compile the jsp files.
-   * If threads parameter is greater than 4, then maybe the compilerName "org.apache.jasper.compiler.ParallelJDTCompiler" will be more efficient
+   * If threads parameter is greater than 2, then maybe the compilerClass "org.apache.jasper.compiler.ParallelJDTCompiler" will be more efficient
    *
    * @parameter default-value="org.apache.jasper.compiler.JDTCompiler"
    */
-  private String compilerName;
+  private String compilerClass;
   
   private Map<String,NameEnvironmentAnswer> resourcesCache = new ConcurrentHashMap<>();
 
@@ -263,7 +263,7 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("trimSpaces=" + trimSpaces);
       getLog().info("genStringAsCharArray=" + genStringAsCharArray);
       getLog().info("compilerVersion=" + compilerVersion);
-      getLog().info("compilerName=" + compilerName);
+      getLog().info("compilerClass=" + compilerClass);
     }
     try {
       long start = System.currentTimeMillis();
@@ -367,7 +367,7 @@ public class JspcMojo extends AbstractMojo {
     jspc.setGenStringAsCharArray(genStringAsCharArray);
     jspc.setCompilerSourceVM(compilerVersion);
     jspc.setCompilerTargetVM(compilerVersion);
-    jspc.setCompilerName(compilerName);
+    jspc.setcompilerClass(compilerClass);
     jspc.setResourcesCache(resourcesCache);
     if (topJspC == null) {
       jspc.initClassLoader();
