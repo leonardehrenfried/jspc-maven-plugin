@@ -32,4 +32,4 @@ install:
       export PATH=$M2_HOME/bin:$PATH;
       mvn -version;
     fi
-script: mvn clean integration-test --quiet
+script: mvn -B clean integration-test
