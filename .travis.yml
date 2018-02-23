@@ -7,8 +7,6 @@ language: java
 matrix:
   include:
   - jdk: openjdk7
-    env: CUSTOM_MVN_VERION="3.0"
-  - jdk: openjdk7
     env: CUSTOM_MVN_VERION="3.3.9"
   - jdk: oraclejdk8
     env: CUSTOM_MVN_VERION="3.3.9"
