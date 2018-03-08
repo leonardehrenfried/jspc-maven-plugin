@@ -31,6 +31,7 @@
     <maven.version>3.3.9</maven.version>
     <maven.plugin.plugin.version>3.5</maven.plugin.plugin.version>
     <maven.site.plugin.version>3.6</maven.site.plugin.version>
+    <tomcat.version>8.5.8</tomcat.version>
   </properties>
 
   <scm>
@@ -52,7 +53,7 @@
     <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-jasper</artifactId>
-      <version>8.5.8</version>
+      <version>${tomcat.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.eclipse.jdt.core.compiler</groupId>
@@ -279,6 +280,11 @@
             <goals>
               <goal>run</goal>
             </goals>
+            <configuration>
+              <properties>
+              	<tomcat.version>${tomcat.version}</tomcat.version>
+              </properties>
+            </configuration>
           </execution>
         </executions>
       </plugin>
