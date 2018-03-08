@@ -26,8 +26,9 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
+    <java.compilation.level>1.7</java.compilation.level>
+    <maven.compiler.source>${java.compilation.level}</maven.compiler.source>
+    <maven.compiler.target>${java.compilation.level}</maven.compiler.target>
     <maven.version>3.3.9</maven.version>
     <maven.plugin.plugin.version>3.5</maven.plugin.plugin.version>
     <maven.site.plugin.version>3.6</maven.site.plugin.version>
@@ -283,6 +284,7 @@
             <configuration>
               <properties>
               	<tomcat.version>${tomcat.version}</tomcat.version>
+              	<java.compilation.level>${java.compilation.level}</java.compilation.level>
               </properties>
             </configuration>
           </execution>
