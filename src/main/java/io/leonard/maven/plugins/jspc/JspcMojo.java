@@ -564,7 +564,8 @@ public class JspcMojo extends AbstractMojo {
     String classesDir = classesDirectory.getCanonicalPath();
     classesDir = classesDir
       + (classesDir.endsWith(File.pathSeparator) ? "" : File.separator);
-    urls.add(new File(classesDir).toURI().toURL());
+    //we must keep deprecated usage of File.toURL because URLClassloader seem not working with path with %20 for example.
+    urls.add(new File(classesDir).toURL());
 
     if (getLog().isDebugEnabled()) {
       getLog().debug("Adding to classpath classes dir: " + classesDir);
@@ -581,7 +582,7 @@ public class JspcMojo extends AbstractMojo {
             "Adding to classpath dependency file: " + filePath);
         }
 
-        urls.add(artifact.getFile().toURI().toURL());
+        urls.add(artifact.getFile().toURL());
       }
     }
   }
