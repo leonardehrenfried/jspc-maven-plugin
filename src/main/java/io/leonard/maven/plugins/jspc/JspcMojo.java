@@ -20,12 +20,19 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import org.apache.jasper.*;
+import org.apache.jasper.compiler.ErrorDispatcher;
+import org.apache.jasper.compiler.MavenErrorDispatcher;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.*;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.*;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.eclipse.jetty.util.IO;
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
  * <p>
@@ -49,24 +56,22 @@ import org.eclipse.jetty.util.IO;
  * </p>
  *
  * @author <a href="mailto:leonard.ehrenfrie@web.de">Leonard Ehrenfried</a>
- * @goal compile
- * @phase process-classes
- * @requiresDependencyResolution compile
  * @description Runs jspc compiler to produce .java and .class files
- * @threadSafe true
  */
+@org.apache.maven.plugins.annotations.Mojo( name = "compile", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true )
 public class JspcMojo extends AbstractMojo {
 
   private static final String WEB_XML = "web.xml";
   public static final String END_OF_WEBAPP = "</web-app>";
+  
+  @Component
+  private BuildContext buildContext;
 
   /**
    * The maven project.
    *
-   * @parameter property="project"
-   * @required
-   * @readonly
    */
+  @Parameter(defaultValue="${project}", readonly=true, required=true)
   private MavenProject project;
   /**
    * File into which to generate the &lt;servlet&gt; and
@@ -75,9 +80,8 @@ public class JspcMojo extends AbstractMojo {
    * <p>
    * If multithreading mode is active (threads > 1), then this filename
    * will be suffixed by ".threadIndex" (example : webfrag.xml.3).
-   *
-   * @parameter default-value="${basedir}/target/webfrag.xml"
    */
+  @Parameter(defaultValue="${basedir}/target/webfrag.xml")
   private String webXmlFragment;
   /**
    * Optional. A marker string in the src web.xml file which indicates where
@@ -88,160 +92,138 @@ public class JspcMojo extends AbstractMojo {
    *
    * @parameter
    */
+  @Parameter
   private String insertionMarker;
   /**
    * Merge the generated fragment file with the web.xml from
    * webAppSourceDirectory. The merged file will go into the same directory as
    * the webXmlFragment.
-   *
-   * @parameter default-value="true"
    */
+  @Parameter(defaultValue="true")
   private boolean mergeFragment;
   /**
    * The destination directory into which to put the compiled jsps.
-   *
-   * @parameter default-value="${project.build.outputDirectory}"
    */
+  @Parameter(defaultValue="${project.build.outputDirectory}")
   private String generatedClasses;
   /**
    * Controls whether or not .java files generated during compilation will be
    * preserved.
-   *
-   * @parameter default-value="false"
    */
+  @Parameter(defaultValue="false")
   private boolean keepSources;
   /**
    * Default root package for all generated classes
-   *
-   * @parameter default-value="jsp"
    */
+  @Parameter(defaultValue="jsp")
   private String packageRoot;
   /**
    * Root directory for all html/jsp etc files
-   *
-   * @parameter default-value="${basedir}/src/main/webapp"
    */
+  @Parameter(defaultValue="${basedir}/src/main/webapp")
   private String webAppSourceDirectory;
   /**
    * Location of web.xml. Defaults to src/main/webapp/web.xml.
-   *
-   * @parameter default-value="${basedir}/src/main/webapp/WEB-INF/web.xml"
    */
+  @Parameter(defaultValue="${basedir}/src/main/webapp/WEB-INF/web.xml")
   private String webXml;
   /**
    * The comma separated list of patterns for file extensions to be processed. By default
    * will include all .jsp and .jspx files.
-   *
-   * @parameter default-value="**\/*.jsp, **\/*.jspx,  **\/*.jspf"
    */
+  @Parameter(defaultValue="**\\/*.jsp, **\\/*.jspx,  **\\/*.jspf")
   private String[] includes;
   /**
    * The comma separated list of file name patters to exclude from compilation.
-   *
-   * @parameter default_value="**\/.svn\/**";
    */
+  @Parameter(defaultValue="**\\/.svn\\/**")
   private String[] excludes;
   /**
    * The location of the compiled classes for the webapp
-   *
-   * @parameter property="project.build.outputDirectory"
    */
+  @Parameter(defaultValue="${project.build.outputDirectory}")
   private File classesDirectory;
   /**
    * Whether or not to output more verbose messages during compilation.
-   *
-   * @parameter default-value="false";
    */
+  @Parameter(defaultValue="false")
   private boolean verbose;
   /**
    * If true, validates tlds when parsing.
-   *
-   * @parameter default-value="false";
    */
+  @Parameter(defaultValue="false")
   private boolean validateXml;
   /**
    * The encoding scheme to use.
-   *
-   * @parameter default-value="UTF-8"
    */
+  @Parameter(defaultValue="UTF-8")
   private String javaEncoding;
   /**
    * Whether or not to generate JSR45 compliant debug info
-   *
-   * @parameter default-value="true";
    */
+  @Parameter(defaultValue="true")
   private boolean suppressSmap;
   /**
    * Whether or not to ignore precompilation errors caused by jsp fragments.
-   *
-   * @parameter default-value="false"
    */
+  @Parameter(defaultValue="false")
   private boolean ignoreJspFragmentErrors;
   /**
    * Allows a prefix to be appended to the standard schema locations so that
    * they can be loaded from elsewhere.
-   *
-   * @parameter
    */
+  @Parameter
   private String schemaResourcePrefix;
   /**
    * Fail the build and stop at the first jspc error.
    * If set to "false", all jsp will be compiled even if they raise errors, and all errors will be listed when they raise.
    * In this case the build will fail too.
    * In case of threads > 1 and stopAtFirstError=true, each thread can have is own first error.
-   *
-   * @parameter default-value="true"
    */
+  @Parameter(defaultValue="true")
   private boolean stopAtFirstError;
   /**
    * The number of threads will be used for compile all of the jsps.
    * Number total of jsps will be divided by thread number.
    * Each part will be given to differents thread.
-   *
-   * @parameter default-value="1"
+   * 
+   * Defaults to the number of CPUs available as indicated by {@link Runtime#availableProcessors()}
    */
+  @Parameter(defaultValue="-1")
   private int threads;
 
   /**
    * Whether Jsp Tag Pooling should be enabled.
-   *
-   * @parameter default-value="true"
    */
+  @Parameter(defaultValue="true")
   private boolean enableJspTagPooling;
 
   /**
    * Should white spaces in template text between actions or directives be trimmed?
-   *
-   * @parameter default-value="false"
    */
+  @Parameter(defaultValue="false")
   private boolean trimSpaces;
 
   /**
    * Should text strings be generated as char arrays, to improve performance in some cases?
-   *
-   * @parameter default-value="false"
    */
+  @Parameter(defaultValue="false")
   private boolean genStringAsCharArray;
 
   /**
    * Version of Java used to compile the jsp files.
-   *
-   * @parameter default-value="1.7"
    */
+  @Parameter(defaultValue="1.7")
   private String compilerVersion;
-  
-  /**
-   * Name of the compiler class used to compile the jsp files.
-   * If threads parameter is greater than 2, then maybe the compilerClass "org.apache.jasper.compiler.ParallelJDTCompiler" will be more efficient
-   *
-   * @parameter default-value="org.apache.jasper.compiler.JDTCompiler"
-   */
-  private String compilerClass;
   
   private Map<String,NameEnvironmentAnswer> resourcesCache = new ConcurrentHashMap<>();
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+	if(threads == -1) {
+		threads = Runtime.getRuntime().availableProcessors();
+	}
+    MavenErrorDispatcher errorDispatcher = new MavenErrorDispatcher(buildContext, getLog());
     if (getLog().isDebugEnabled()) {
       getLog().info("verbose=" + verbose);
       getLog().info("webAppSourceDirectory=" + webAppSourceDirectory);
@@ -263,13 +245,12 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("trimSpaces=" + trimSpaces);
       getLog().info("genStringAsCharArray=" + genStringAsCharArray);
       getLog().info("compilerVersion=" + compilerVersion);
-      getLog().info("compilerClass=" + compilerClass);
     }
     try {
       long start = System.currentTimeMillis();
 
       prepare();
-      compile();
+      compile(errorDispatcher);
       cleanupSrcs();
       mergeWebXml();
 
@@ -284,9 +265,12 @@ public class JspcMojo extends AbstractMojo {
     } catch (Exception e) {
       throw new MojoExecutionException("Failure processing jsps", e);
     }
+    if(errorDispatcher.isErrorOccurred()) {
+  	  throw new MojoFailureException("Failed to process jsps");
+    }
   }
 
-  public void compile() throws Exception {
+  public void compile(ErrorDispatcher errorDispatcher) throws Exception {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
 
     ArrayList<URL> urls = new ArrayList<URL>();
@@ -308,13 +292,19 @@ public class JspcMojo extends AbstractMojo {
 
     Thread.currentThread().setContextClassLoader(ucl);
 
-    String[] jspFiles = getJspFiles(webAppSourceDirectory);
-    if (verbose) {
-      getLog().info("Files selected to precompile: " + StringUtils.join(jspFiles,", "));
+    List<String> modifiedJspFiles = new ArrayList<>();
+    for( String jspFile : getJspFiles(webAppSourceDirectory) ) {
+    	if(buildContext.hasDelta(jspFile)) {
+    		modifiedJspFiles.add(jspFile);
+    	}
+    }
+    String[] jspFiles = modifiedJspFiles.toArray(new String[] {});
+    if(verbose) {
+        getLog().info("Files selected to precompile: " + StringUtils.join(jspFiles,", "));
     }
 
     ExecutorService executor = Executors.newFixedThreadPool(threads);
-    List<Future<String>> results = executor.invokeAll(initJspcWorkers(classpathStr, jspFiles, initJspList(jspFiles)));
+    List<Future<String>> results = executor.invokeAll(initJspcWorkers(classpathStr, jspFiles, initJspList(jspFiles), errorDispatcher));
     executor.shutdown();
 
     getLog().info("Number total of jsps : " + jspFiles.length);
@@ -329,28 +319,30 @@ public class JspcMojo extends AbstractMojo {
     return jspFilesList;
   }
 
-  private List<JspcWorker> initJspcWorkers(StringBuilder classpathStr, String[] jspFiles, List<String> jspFilesList) throws JasperException, IOException {
+  private List<JspcWorker> initJspcWorkers(StringBuilder classpathStr, String[] jspFiles, List<String> jspFilesList, ErrorDispatcher errorDispatcher) throws JasperException, IOException {
     List<JspcWorker> workers = new ArrayList<>();
     int minItem = jspFiles.length / threads;
     int maxItem = minItem + 1;
     int threadsWithMaxItems = jspFiles.length - threads * minItem;
     int start = 0;
-    JspCContextAccessor topJspC = initJspc(classpathStr, -1, null);
+    JspCContextAccessor topJspC = initJspc(classpathStr, -1, null, errorDispatcher);
     for (int index = 0; index < threads; index++) {
       int itemsCount = (index < threadsWithMaxItems ? maxItem : minItem);
       int end = start + itemsCount;
       List<String> jspFilesSubList = jspFilesList.subList(start, end);
-      JspC firstJspC = initJspc(classpathStr, index, topJspC);
-      JspcWorker worker = new JspcWorker(firstJspC, jspFilesSubList);
-      workers.add(worker);
-      start = end;
-      getLog().info("Number of jsps for thread " + (index + 1) + " : " + jspFilesSubList.size());
+      if(!jspFilesSubList.isEmpty()) {
+	      JspC firstJspC = initJspc(classpathStr, index, topJspC, errorDispatcher);
+	      JspcWorker worker = new JspcWorker(firstJspC, jspFilesSubList);
+	      workers.add(worker);
+	      start = end;
+	      getLog().info("Number of jsps for thread " + (index + 1) + " : " + jspFilesSubList.size());
+      }
     }
     return workers;
   }
 
-  private JspCContextAccessor initJspc(StringBuilder classpathStr, int threadIndex, JspCContextAccessor topJspC) throws IOException, JasperException {
-    JspCContextAccessor jspc = new JspCContextAccessor();
+  private JspCContextAccessor initJspc(StringBuilder classpathStr, int threadIndex, JspCContextAccessor topJspC, ErrorDispatcher errorDispatcher) throws IOException, JasperException {
+    JspCContextAccessor jspc = new JspCContextAccessor(buildContext, getLog(), errorDispatcher);
     jspc.setWebXmlFragment(getwebXmlFragmentFilename(threadIndex));
     jspc.setUriroot(webAppSourceDirectory);
     jspc.setPackage(packageRoot);
@@ -367,7 +359,6 @@ public class JspcMojo extends AbstractMojo {
     jspc.setGenStringAsCharArray(genStringAsCharArray);
     jspc.setCompilerSourceVM(compilerVersion);
     jspc.setCompilerTargetVM(compilerVersion);
-    jspc.setcompilerClass(compilerClass);
     jspc.setResourcesCache(resourcesCache);
     if (topJspC == null) {
       jspc.initClassLoader();
@@ -448,7 +439,7 @@ public class JspcMojo extends AbstractMojo {
     }
   }
 
-  static void delete(File dir, FileFilter filter) {
+  void delete(File dir, FileFilter filter) {
     File[] files = dir.listFiles(filter);
     for (int i = 0; i < files.length; i++) {
       File f = files[i];
@@ -457,6 +448,7 @@ public class JspcMojo extends AbstractMojo {
       } else {
         f.delete();
       }
+      buildContext.refresh(f);
     }
   }
 
@@ -486,7 +478,7 @@ public class JspcMojo extends AbstractMojo {
       File mergedWebXml = new File(new File(getwebXmlFragmentFilename(0)).getParentFile(),
         WEB_XML);
       try (BufferedReader webXmlReader = new BufferedReader(new FileReader(webXmlFile))) {
-        try (PrintWriter mergedWebXmlWriter = new PrintWriter(new FileWriter(mergedWebXml))) {
+        try (PrintWriter mergedWebXmlWriter = new PrintWriter(buildContext.newFileOutputStream(mergedWebXml))) {
           String marker = writeStartOfWebXmlMergedFile(webXmlReader, mergedWebXmlWriter);
 
           writeXmlFragmentsInMergedXmlFile(mergedWebXmlWriter);
@@ -548,6 +540,7 @@ public class JspcMojo extends AbstractMojo {
     File generatedSourceDirectoryFile = new File(generatedClasses);
     if (!generatedSourceDirectoryFile.exists()) {
       generatedSourceDirectoryFile.mkdirs();
+      buildContext.refresh(generatedSourceDirectoryFile);
     }
   }
 
