@@ -41,10 +41,6 @@ Full documentation of the goal is available at http://leonardehrenfried.github.c
 
 [https://tcollignon.github.io/2016/12/04/How-to-compile-JSP-with-Tomcat-and-Maven-faster.html](https://tcollignon.github.io/2016/12/04/How-to-compile-JSP-with-Tomcat-and-Maven-faster.html)
 
-## Use another JSP compiler
-
-By default this plugin use org.apache.jasper.compiler.JDTCompiler (see compilerClass goal option). But if number of threads is over 2, this compiler have too much synchronization and it's not very performant. To improve this is possible to user another compilerClass "org.apache.jasper.compiler.ParallelJDTCompiler", who reduce period of synchronization.
-
 ## Release process
 
 1. `make release`

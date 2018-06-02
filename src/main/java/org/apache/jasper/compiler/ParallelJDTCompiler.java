@@ -20,7 +20,7 @@ import java.io.*;
 import java.util.*;
 
 import org.apache.jasper.JasperException;
-import org.apache.juli.logging.*;
+import org.apache.maven.plugin.logging.Log;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.*;
 import org.eclipse.jdt.internal.compiler.Compiler;
@@ -28,6 +28,7 @@ import org.eclipse.jdt.internal.compiler.classfmt.*;
 import org.eclipse.jdt.internal.compiler.env.*;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 import io.leonard.maven.plugins.jspc.JspCContextAccessor;
 
@@ -37,14 +38,22 @@ import io.leonard.maven.plugins.jspc.JspCContextAccessor;
  */
 public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
 
-  private final Log log = LogFactory.getLog(ParallelJDTCompiler.class);
+  private final Log log;
+  private final BuildContext buildContext;
   ClassLoader classLoader;
   String sourceFile;
   String outputDir;
   String packageName;
   String targetClassName;
 
-  public boolean isCheckFileNecessary(char[] packageName) {
+  public ParallelJDTCompiler(Log log, BuildContext buildContext, ErrorDispatcher errorDispatcher) {
+	super();
+	this.log = log;
+	this.buildContext = buildContext;
+	this.errDispatcher = errorDispatcher;
+}
+
+public boolean isCheckFileNecessary(char[] packageName) {
     if (Character.isUpperCase(packageName[0])) {
       return false;
     }
@@ -248,8 +257,8 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
     }
 
   };
-  
-  /**
+
+/**
    * Compile the servlet from .java file to .class file
    */
   @Override
@@ -260,6 +269,8 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
       if (log.isDebugEnabled()) {
           t1 = System.currentTimeMillis();
       }
+      
+      buildContext.removeMessages(new File(ctxt.getJspFile()));
       
       classLoader = ctxt.getJspLoader();
       sourceFile = ctxt.getServletJavaFileName();
@@ -425,15 +436,16 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
                               }
                               byte[] bytes = classFile.getBytes();
                               classFileName.append(".class");
-                              try (FileOutputStream fout = new FileOutputStream(
-                                      classFileName.toString());
+                              try (OutputStream fout = buildContext.newFileOutputStream(
+                                      new File(classFileName.toString()));
                                       BufferedOutputStream bos = new BufferedOutputStream(fout);) {
                                   bos.write(bytes);
                               }
                           }
                       }
                   } catch (IOException exc) {
-                      log.error("Compilation error", exc);
+                	  throw new RuntimeException(exc);
+//                	  buildContext.addMessage(new File(ctxt.getJspFile()), 0, 0,exc.getMessage(), BuildContext.SEVERITY_ERROR, exc);
                   }
               }
           };
@@ -456,12 +468,16 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
       if (!ctxt.keepGenerated()) {
           File javaFile = new File(ctxt.getServletJavaFileName());
           javaFile.delete();
+          buildContext.refresh(javaFile);
       }
 
       if (!problemList.isEmpty()) {
           JavacErrorDetail[] jeds =
               problemList.toArray(new JavacErrorDetail[0]);
           errDispatcher.javacError(jeds);
+//          for( JavacErrorDetail jed : jeds ) {
+//        	  buildContext.addMessage(new File(jed.getJspFileName()), jed.getJspBeginLineNumber(), 0, jed.getErrorMessage(), BuildContext.SEVERITY_ERROR, null);
+//          }
       }
 
       if( log.isDebugEnabled() ) {
@@ -477,6 +493,10 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
       // JSR45 Support
       if (! options.isSmapSuppressed()) {
           SmapUtil.installSmap(smap);
+          for (int i = 0; i < smap.length; i += 2) {
+              File outServlet = new File(smap[i]);
+              buildContext.refresh(outServlet);
+          }
       }
   }
 }
