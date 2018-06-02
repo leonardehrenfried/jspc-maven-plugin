@@ -2,6 +2,7 @@ sudo: false
 jdk:
   - oraclejdk9
   - oraclejdk8
+  - openjdk8
   - openjdk7
 language: java
 matrix:
