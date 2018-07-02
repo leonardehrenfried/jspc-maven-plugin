@@ -15,6 +15,7 @@
         <groupId>io.leonard.maven.plugins</groupId>
         <artifactId>jspc-maven-plugin</artifactId>
         <configuration>
+          <webXml>${project.basedir}/../project_many_jsp/src/main/webapp/WEB-INF/web.xml</webXml>
           <threads>4</threads>
           <webAppSourceDirectory>${project.basedir}/../project_many_jsp/src/main/webapp</webAppSourceDirectory>
         </configuration>
