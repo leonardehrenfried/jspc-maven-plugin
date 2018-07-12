@@ -49,6 +49,19 @@ public class TestJspcMojoMultithreading {
 
     // Then
     List<String> webXml = Files.readAllLines(Paths.get("target/test-classes/unit/project_one_jsp_4_threads/target/web.xml"), Charset.defaultCharset());
-    assertThat(webXml).containsOnlyOnce("        <servlet-name>jsp.jsp.index_jsp</servlet-name>");
+    assertThat(webXml).containsOnlyOnce("        <url-pattern>/jsp/index.jsp</url-pattern>");
+  }
+  
+  @Test
+  public void should_return_one_time_jsp_declaration_in_web_xml_when_executeMojo_on_project_five_jsp_with_4_threads() throws Exception {
+    // Given
+    File fiveJspProject4Threads = new File("target/test-classes/unit/project_five_jsp_4_threads");
+
+    // When
+    rule.executeMojo(fiveJspProject4Threads, "compile");
+
+    // Then
+    List<String> webXml = Files.readAllLines(Paths.get("target/test-classes/unit/project_five_jsp_4_threads/target/web.xml"), Charset.defaultCharset());
+    assertThat(webXml).containsOnlyOnce("        <url-pattern>/jsp/index.jsp</url-pattern>");
   }
 }

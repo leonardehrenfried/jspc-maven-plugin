@@ -337,14 +337,19 @@ public class JspcMojo extends AbstractMojo {
     int start = 0;
     JspCContextAccessor topJspC = initJspc(classpathStr, -1, null);
     for (int index = 0; index < threads; index++) {
+      int threadNumber = index + 1;
       int itemsCount = (index < threadsWithMaxItems ? maxItem : minItem);
       int end = start + itemsCount;
       List<String> jspFilesSubList = jspFilesList.subList(start, end);
-      JspC firstJspC = initJspc(classpathStr, index, topJspC);
-      JspcWorker worker = new JspcWorker(firstJspC, jspFilesSubList);
-      workers.add(worker);
-      start = end;
-      getLog().info("Number of jsps for thread " + (index + 1) + " : " + jspFilesSubList.size());
+      if (jspFilesSubList.isEmpty()) {
+        getLog().info("Thread " + threadNumber + " have nothing to do, skip it");
+      }else {
+        JspC firstJspC = initJspc(classpathStr, index, topJspC);
+        JspcWorker worker = new JspcWorker(firstJspC, jspFilesSubList);
+        workers.add(worker);
+        start = end;
+        getLog().info("Number of jsps for thread " + threadNumber + " : " + jspFilesSubList.size());
+      }
     }
     return workers;
   }
@@ -379,9 +384,11 @@ public class JspcMojo extends AbstractMojo {
     // JspC#setExtensions() does not exist, so
     // always set concrete list of files that will be processed.
 
-    getLog().info("Includes=" + StringUtils.join(includes, ","));
-    if (excludes != null) {
-      getLog().info("Excludes=" + StringUtils.join(excludes, ","));
+    if (topJspC != null) {
+      getLog().info("Includes=" + StringUtils.join(includes, ","));
+      if (excludes != null) {
+        getLog().info("Excludes=" + StringUtils.join(excludes, ","));
+      }
     }
 
     if (verbose) {
