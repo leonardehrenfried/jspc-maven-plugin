@@ -42,7 +42,7 @@ public class JspcWorker implements Callable<String> {
     }
     return allJsp;
   }
-
+  
   /**
    * We need to know when Jspc raise SEVERE error when we set
    * "failOnError=false"

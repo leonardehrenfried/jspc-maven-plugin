@@ -6,3 +6,8 @@ commit-site:
 	git commit -am "Add newest version of Maven site"
 	git push
 	git checkout master
+
+release:
+	mvn release:prepare
+	mvn release:perform
+	mvn release:clean

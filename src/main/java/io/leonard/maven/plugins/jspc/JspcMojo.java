@@ -14,22 +14,38 @@
 //========================================================================
 package io.leonard.maven.plugins.jspc;
 
-import org.apache.jasper.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.jasper.JasperException;
+import org.apache.jasper.JspC;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.eclipse.jetty.util.IO;
-
-import java.io.*;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.*;
-import java.util.concurrent.*;
-
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
+import org.eclipse.jetty.util.IO;
 
 /**
  * <p>
@@ -45,22 +61,21 @@ import org.codehaus.plexus.util.StringUtils;
  *  <li>Not stop at the first error : see <b>stopAtFirstError</b> parameter</li>
  * </ul>
  * <p>
- * The compiler used in this plugin the Apache Jasper 9.0.1 but it can be overloaded.
+ * The compiler used in this plugin the Apache Jasper 9.0.8 but it can be overloaded.
  * </p>
  *
- * @author janb
  * @author <a href="mailto:leonard.ehrenfrie@web.de">Leonard Ehrenfried</a>
- *
  * @goal compile
  * @phase process-classes
  * @requiresDependencyResolution compile
  * @description Runs jspc compiler to produce .java and .class files
+ * @threadSafe true
  */
 public class JspcMojo extends AbstractMojo {
 
   private static final String WEB_XML = "web.xml";
   public static final String END_OF_WEBAPP = "</web-app>";
-  
+
   /**
    * The maven project.
    *
@@ -73,9 +88,9 @@ public class JspcMojo extends AbstractMojo {
    * File into which to generate the &lt;servlet&gt; and
    * &lt;servlet-mapping&gt; tags for the compiled jsps.
    * <br>
-   * 
+   * <p>
    * If multithreading mode is active (threads > 1), then this filename
-   * will be suffixed by ".threadIndex" (example : webfrag.xml.3). 
+   * will be suffixed by ".threadIndex" (example : webfrag.xml.3).
    *
    * @parameter default-value="${basedir}/target/webfrag.xml"
    */
@@ -121,11 +136,11 @@ public class JspcMojo extends AbstractMojo {
    * Root directory for all html/jsp etc files
    *
    * @parameter default-value="${basedir}/src/main/webapp"
-   *
    */
   private String webAppSourceDirectory;
   /**
    * Location of web.xml. Defaults to src/main/webapp/web.xml.
+   *
    * @parameter default-value="${basedir}/src/main/webapp/WEB-INF/web.xml"
    */
   private String webXml;
@@ -231,6 +246,16 @@ public class JspcMojo extends AbstractMojo {
    */
   private String compilerVersion;
   
+  /**
+   * Name of the compiler class used to compile the jsp files.
+   * If threads parameter is greater than 2, then maybe the compilerClass "org.apache.jasper.compiler.ParallelJDTCompiler" will be more efficient
+   *
+   * @parameter default-value="org.apache.jasper.compiler.JDTCompiler"
+   */
+  private String compilerClass;
+  
+  private Map<String,NameEnvironmentAnswer> resourcesCache = new ConcurrentHashMap<>();
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (getLog().isDebugEnabled()) {
@@ -254,6 +279,7 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("trimSpaces=" + trimSpaces);
       getLog().info("genStringAsCharArray=" + genStringAsCharArray);
       getLog().info("compilerVersion=" + compilerVersion);
+      getLog().info("compilerClass=" + compilerClass);
     }
     try {
       long start = System.currentTimeMillis();
@@ -279,19 +305,19 @@ public class JspcMojo extends AbstractMojo {
   public void compile() throws IOException, InterruptedException, MojoExecutionException, ExecutionException {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
 
-    ArrayList urls = new ArrayList();
+    ArrayList<URL> urls = new ArrayList<URL>();
     setUpClassPath(urls);
-    URLClassLoader ucl = new URLClassLoader((URL[]) urls.toArray(new URL[0]), currentClassLoader);
+    URLClassLoader ucl = new URLClassLoader(urls.toArray(new URL[0]), currentClassLoader);
     StringBuilder classpathStr = new StringBuilder();
 
     for (int i = 0; i < urls.size(); i++) {
       if (getLog().isDebugEnabled()) {
         getLog().debug("webappclassloader contains: " + urls.get(i));
       }
-      classpathStr.append(((URL) urls.get(i)).getFile());
+      classpathStr.append(urls.get(i).getFile());
       if (getLog().isDebugEnabled()) {
         getLog().debug(
-          "added to classpath: " + ((URL) urls.get(i)).getFile());
+          "added to classpath: " + urls.get(i).getFile());
       }
       classpathStr.append(System.getProperty("path.separator"));
     }
@@ -300,7 +326,7 @@ public class JspcMojo extends AbstractMojo {
 
     String[] jspFiles = getJspFiles(webAppSourceDirectory);
     if (verbose) {
-      getLog().info("Files selected to precompile: " + jspFiles);
+      getLog().info("Files selected to precompile: " + StringUtils.join(jspFiles,", "));
     }
 
     ExecutorService executor = Executors.newFixedThreadPool(threads);
@@ -319,26 +345,33 @@ public class JspcMojo extends AbstractMojo {
     return jspFilesList;
   }
 
-  private List<JspcWorker> initJspcWorkers(StringBuilder classpathStr, String[] jspFiles, List<String> jspFilesList) {
+  private List<JspcWorker> initJspcWorkers(StringBuilder classpathStr, String[] jspFiles, List<String> jspFilesList) throws JasperException, IOException {
     List<JspcWorker> workers = new ArrayList<>();
     int minItem = jspFiles.length / threads;
-    int maxItem = minItem +1;
+    int maxItem = minItem + 1;
     int threadsWithMaxItems = jspFiles.length - threads * minItem;
     int start = 0;
-    for (int index=0; index<threads; index++){
+    JspCContextAccessor topJspC = initJspc(classpathStr, -1, null);
+    for (int index = 0; index < threads; index++) {
+      int threadNumber = index + 1;
       int itemsCount = (index < threadsWithMaxItems ? maxItem : minItem);
       int end = start + itemsCount;
       List<String> jspFilesSubList = jspFilesList.subList(start, end);
-      JspcWorker worker = new JspcWorker(initJspc(classpathStr, index), jspFilesSubList);
-      workers.add(worker);
-      start = end;
-      getLog().info("Number of jsps for thread " + (index+1) + " : " + jspFilesSubList.size());
+      if (jspFilesSubList.isEmpty()) {
+        getLog().info("Thread " + threadNumber + " have nothing to do, skip it");
+      }else {
+        JspC firstJspC = initJspc(classpathStr, index, topJspC);
+        JspcWorker worker = new JspcWorker(firstJspC, jspFilesSubList);
+        workers.add(worker);
+        start = end;
+        getLog().info("Number of jsps for thread " + threadNumber + " : " + jspFilesSubList.size());
+      }
     }
     return workers;
   }
 
-  private JspC initJspc(StringBuilder classpathStr, int threadIndex) {
-    JspC jspc = new JspC();
+  private JspCContextAccessor initJspc(StringBuilder classpathStr, int threadIndex, JspCContextAccessor topJspC) throws IOException, JasperException {
+    JspCContextAccessor jspc = new JspCContextAccessor();
     jspc.setWebXmlFragment(getwebXmlFragmentFilename(threadIndex));
     jspc.setUriroot(webAppSourceDirectory);
     jspc.setPackage(packageRoot);
@@ -355,14 +388,23 @@ public class JspcMojo extends AbstractMojo {
     jspc.setGenStringAsCharArray(genStringAsCharArray);
     jspc.setCompilerSourceVM(compilerVersion);
     jspc.setCompilerTargetVM(compilerVersion);
-
+    jspc.setcompilerClass(compilerClass);
+    jspc.setResourcesCache(resourcesCache);
+    if (topJspC == null) {
+      jspc.initClassLoader();
+      jspc.initServletContext();
+    } else {
+      jspc.initContext(topJspC);
+    }
 
     // JspC#setExtensions() does not exist, so
     // always set concrete list of files that will be processed.
 
-    getLog().info("Includes=" + StringUtils.join(includes, ","));
-    if (excludes != null) {
-      getLog().info("Excludes=" + StringUtils.join(excludes, ","));
+    if (topJspC != null) {
+      getLog().info("Includes=" + StringUtils.join(includes, ","));
+      if (excludes != null) {
+        getLog().info("Excludes=" + StringUtils.join(excludes, ","));
+      }
     }
 
     if (verbose) {
@@ -376,21 +418,21 @@ public class JspcMojo extends AbstractMojo {
 
   private void manageResults(List<Future<String>> results) throws InterruptedException, ExecutionException, MojoExecutionException {
     boolean failTheBuild = false;
-    for (Future<String> result : results){
-      if (result.get() != null){
+    for (Future<String> result : results) {
+      if (result.get() != null) {
         getLog().error(result.get());
         failTheBuild = true;
       }
     }
 
-    if (failTheBuild){
+    if (failTheBuild) {
       throw new MojoExecutionException("see previous errors");
     }
   }
 
-  private String[] getJspFiles(String webAppSourceDirectory) {
+  private String[] getJspFiles(String webAppSrcDir) {
     DirectoryScanner scanner = new DirectoryScanner();
-    scanner.setBasedir(new File(webAppSourceDirectory));
+    scanner.setBasedir(new File(webAppSrcDir));
     if ((excludes != null) && (excludes.length != 0)) {
       scanner.setExcludes(excludes);
     }
@@ -399,7 +441,13 @@ public class JspcMojo extends AbstractMojo {
     scanner.setCaseSensitive(false);
     scanner.scan();
 
-    return scanner.getIncludedFiles();
+    String[] includedFiles = scanner.getIncludedFiles();
+
+    getLog().debug(String.format("Included files returned from directory scan: %s", StringUtils.join(includedFiles, ",")));
+    getLog().debug(String.format("Excluded files returned from directory scan: %s", StringUtils.join(scanner.getExcludedFiles(), ",")));
+    getLog().debug(String.format("Excluded directories returned from directory scan: %s", StringUtils.join(scanner.getExcludedDirectories(), ",")));
+
+    return includedFiles;
   }
 
   /**
@@ -432,18 +480,18 @@ public class JspcMojo extends AbstractMojo {
   /**
    * Take the web fragment (for each thread if we active multithreading mode)
    * and put it inside a copy of the web.xml.
-   *
+   * <p>
    * You can specify the insertion point by specifying the string in the
    * insertionMarker configuration entry.
-   *
+   * <p>
    * If you dont specify the insertionMarker, then the fragment will be
    * inserted at the end of the file just before the &lt;/webapp&gt;
    *
-   * @throws Exception
+   * @throws IOException by {@link JspcMojo#writeStartOfWebXmlMergedFile} method when reading xml file
    */
   public void mergeWebXml() throws IOException {
     if (mergeFragment) {
-      
+
       // open the src web.xml
       File webXmlFile = getWebXmlFile();
 
@@ -451,15 +499,15 @@ public class JspcMojo extends AbstractMojo {
         getLog().info(webXmlFile.toString() + " does not exist, cannot merge with generated fragment");
         return;
       }
-      
+
       File mergedWebXml = new File(new File(getwebXmlFragmentFilename(0)).getParentFile(),
-          WEB_XML);
-      try (BufferedReader webXmlReader = new BufferedReader(new FileReader(webXmlFile))){
-        try(PrintWriter mergedWebXmlWriter = new PrintWriter(new FileWriter(mergedWebXml))){
+        WEB_XML);
+      try (BufferedReader webXmlReader = new BufferedReader(new FileReader(webXmlFile))) {
+        try (PrintWriter mergedWebXmlWriter = new PrintWriter(new FileWriter(mergedWebXml))) {
           String marker = writeStartOfWebXmlMergedFile(webXmlReader, mergedWebXmlWriter);
-          
+
           writeXmlFragmentsInMergedXmlFile(mergedWebXmlWriter);
-          
+
           writeEndOfWebXmlMergedFile(webXmlReader, mergedWebXmlWriter, marker);
         }
       }
@@ -487,26 +535,26 @@ public class JspcMojo extends AbstractMojo {
   }
 
   private void writeXmlFragmentsInMergedXmlFile(PrintWriter mergedWebXmlWriter) throws IOException {
-    for (int index=0; index<threads; index++){
+    for (int index = 0; index < threads; index++) {
       File fragmentWebXml = new File(getwebXmlFragmentFilename(index));
       if (!fragmentWebXml.exists()) {
         getLog().info("No fragment web.xml file generated for thread " + index);
-      }else {
+      } else {
         // put in the generated fragment for the current thread
         try (BufferedReader fragmentWebXmlReader = new BufferedReader(
-          new FileReader(fragmentWebXml))){
+          new FileReader(fragmentWebXml))) {
           IO.copy(fragmentWebXmlReader, mergedWebXmlWriter);
         }
       }
     }
   }
-  
+
   private void writeEndOfWebXmlMergedFile(BufferedReader webXmlReader, PrintWriter mergedWebXmlWriter, String marker) throws IOException {
     // if we inserted just before the </web-app>, put it back in
     if (marker.equals(END_OF_WEBAPP)) {
       mergedWebXmlWriter.println(END_OF_WEBAPP);
     }
-  
+
     // copy in the rest of the original web.xml file
     IO.copy(webXmlReader, mergedWebXmlWriter);
   }
@@ -522,24 +570,25 @@ public class JspcMojo extends AbstractMojo {
 
   /**
    * Set up the execution classpath for Jasper.
-   *
+   * <p>
    * Put everything in the classesDirectory and all of the dependencies on the
    * classpath.
    *
    * @param urls a list to which to add the urls of the dependencies
-   * @throws Exception
+   * @throws IOException
    */
-  private void setUpClassPath(List urls) throws IOException {
+  private void setUpClassPath(List<URL> urls) throws IOException {
     String classesDir = classesDirectory.getCanonicalPath();
     classesDir = classesDir
       + (classesDir.endsWith(File.pathSeparator) ? "" : File.separator);
-    urls.add(new File(classesDir).toURI().toURL());
+    //we must keep deprecated usage of File.toURL because URLClassloader seem not working with path with %20 for example.
+    urls.add(new File(classesDir).toURL());
 
     if (getLog().isDebugEnabled()) {
       getLog().debug("Adding to classpath classes dir: " + classesDir);
     }
 
-    for (Iterator iter = project.getArtifacts().iterator(); iter.hasNext();) {
+    for (Iterator<?> iter = project.getArtifacts().iterator(); iter.hasNext(); ) {
       Artifact artifact = (Artifact) iter.next();
 
       // Include runtime and compile time libraries
@@ -550,7 +599,7 @@ public class JspcMojo extends AbstractMojo {
             "Adding to classpath dependency file: " + filePath);
         }
 
-        urls.add(artifact.getFile().toURI().toURL());
+        urls.add(artifact.getFile().toURL());
       }
     }
   }
@@ -575,11 +624,12 @@ public class JspcMojo extends AbstractMojo {
     file = new File(webAppSrcDir, WEB_XML);
     return file;
   }
-  
+
   /**
    * Add thread index at the end of webXmlFragment filename to deal with multithreading.
    * If the number of threads is equal to 1 (no multithreading) we don't add suffix to maintain the same behavior
    * as in the mode without multithreading.
+   *
    * @param threadNumber the index of current thread
    * @return web xml fragment filename with thread index
    */

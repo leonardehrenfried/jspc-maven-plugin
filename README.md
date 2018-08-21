@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/leonardehrenfried/jspc-maven-plugin.svg?branch=master)](https://travis-ci.org/leonardehrenfried/jspc-maven-plugin)
 [![Maven Central](https://img.shields.io/maven-central/v/io.leonard.maven.plugins/jspc-maven-plugin.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22io.leonard.maven.plugins%22%20AND%20a%3A%22jspc-maven-plugin%22)
-[![Dependency Status](https://www.versioneye.com/user/projects/59f845ff0fb24f1f1f38c657/badge.svg)](https://www.versioneye.com/user/projects/59f845ff0fb24f1f1f38c657)
 
 This plugin precompiles JSPs. It is a fork of jetty-jspc-maven-plugin and configured as follows:
 
@@ -92,8 +91,14 @@ Full documentation of the goal is available at http://leonardehrenfried.github.c
 
 [https://tcollignon.github.io/2016/12/04/How-to-compile-JSP-with-Tomcat-and-Maven-faster.html](https://tcollignon.github.io/2016/12/04/How-to-compile-JSP-with-Tomcat-and-Maven-faster.html)
 
+## Use another JSP compiler
+
+By default this plugin use org.apache.jasper.compiler.JDTCompiler (see compilerClass goal option). But if the number of threads is over 2, 
+this compiler has too much synchronization overheas and hence is no very not very performant. 
+
+To improve this is possible to user another compilerClass `org.apache.jasper.compiler.ParallelJDTCompiler`, which reduces synchronization.
+
 ## Release process
 
-1. Set version in `pom.xml`
-1. `mvn clean deploy`
+1. `make release`
 1. `make commit-site`

@@ -27,11 +27,13 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
     <maven.site.plugin.version>3.6</maven.site.plugin.version>
     <maven.plugin.plugin.version>3.5</maven.plugin.plugin.version>
     <maven.version>3.5.2</maven.version>
+    <java.compilation.level>1.8</java.compilation.level>
+    <maven.compiler.source>${java.compilation.level}</maven.compiler.source>
+    <maven.compiler.target>${java.compilation.level}</maven.compiler.target>
+    <tomcat.version>9.0.8</tomcat.version>
   </properties>
 
   <scm>
@@ -53,7 +55,7 @@
     <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-jasper</artifactId>
-      <version>9.0.1</version>
+      <version>${tomcat.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.eclipse.jdt.core.compiler</groupId>
@@ -85,25 +87,63 @@
       <artifactId>maven-project</artifactId>
       <version>2.0.11</version>
     </dependency>
+    
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
       <version>${maven.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-artifact</artifactId>
       <version>${maven.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-tools-api</artifactId>
       <version>2.1</version>
     </dependency>
+    
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <version>${maven.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.5</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven.plugin-testing</groupId>
+      <artifactId>maven-plugin-testing-harness</artifactId>
+      <version>3.3.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-compat</artifactId>
+      <version>${maven.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>2.8.0</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -149,6 +189,17 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <useReleaseProfile>false</useReleaseProfile>
+          <releaseProfiles>release</releaseProfiles>
+          <goals>deploy</goals>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <version>3.0.1</version>
         <executions>
@@ -164,6 +215,40 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>2.10.4</version>
+        <configuration>
+          <tags>
+            <tag>
+              <name>goal</name>
+              <placement>t</placement>
+              <head>Maven goal:</head>
+            </tag>
+            <tag>
+              <name>phase</name>
+              <placement>t</placement>
+              <head>Maven phase:</head>
+            </tag>
+            <tag>
+              <name>requiresDependencyResolution</name>
+              <placement>t</placement>
+              <head>Maven requires dependency resolution:</head>
+            </tag>
+            <tag>
+              <name>description</name>
+              <placement>t</placement>
+              <head>Maven goal description:</head>
+            </tag>
+            <tag>
+              <name>requiresProject</name>
+              <placement>t</placement>
+              <head>Maven goal requires project:</head>
+            </tag>
+            <tag>
+              <name>threadSafe</name>
+              <placement>t</placement>
+              <head>Maven goal thread safe:</head>
+            </tag>
+          </tags>
+        </configuration>
         <executions>
           <execution>
             <id>attach-javadocs</id>
@@ -184,6 +269,37 @@
             <goals>
               <goal>sign</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+      	<groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-invoker-plugin</artifactId>
+        <version>3.0.1</version>
+        <configuration>
+          <projectsDirectory>src/it</projectsDirectory>
+          <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
+          <showVersion>true</showVersion>
+          <streamLogs>true</streamLogs>
+        </configuration>
+        <executions>
+          <execution>
+            <id>preparation-integration-test</id>
+            <goals>
+              <goal>install</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <properties>
+              	<tomcat.version>${tomcat.version}</tomcat.version>
+              	<java.compilation.level>${java.compilation.level}</java.compilation.level>
+              </properties>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -230,6 +346,10 @@
       <id>ossrh</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
     <site>
       <id>gh-pages</id>
       <!-- This gets automatically pushed to the gh-pages branch. -->
