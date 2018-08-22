@@ -33,7 +33,7 @@ It has the following improvements compared to jetty-jspc-maven-plugin:
 * More descriptive error messages: Under Maven 3 this plugin shows a clear indication of what caused the error and which file it is in
 * Not stop at the first error (depends plugin configuration)
 
-The compiler used by default in this plugin is [Apache Jasper 9.0.1](http://search.maven.org/#artifactdetails%7Corg.apache.tomcat%7Ctomcat-jasper%7C9.0.1%7Cjar).
+The compiler used by default in this plugin is [Apache Jasper 9.0.8](http://repo1.maven.org/maven2/org/apache/tomcat/tomcat-jasper/9.0.8/).
 
 If the Jasper compiler version needs to be overloaded, the plugin must be configured as follows:
 

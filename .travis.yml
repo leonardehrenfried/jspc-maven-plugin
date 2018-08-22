@@ -1,5 +1,6 @@
 sudo: false
 jdk:
+  - oraclejdk10
   - oraclejdk9
   - oraclejdk8
   - openjdk8
@@ -14,7 +15,11 @@ matrix:
     env: CUSTOM_MVN_VERSION="3.3.9"
   - jdk: oraclejdk9
     env: CUSTOM_MVN_VERSION="3.5.2"
-
+  - jdk: oraclejdk10
+    env: CUSTOM_MVN_VERSION="3.3.9"
+  - jdk: oraclejdk10
+    env: CUSTOM_MVN_VERSION="3.5.2"
+    
 install:
   - if [[ -n "${CUSTOM_MVN_VERSION}" ]]; then
       echo "Download Maven ${CUSTOM_MVN_VERSION}....";
