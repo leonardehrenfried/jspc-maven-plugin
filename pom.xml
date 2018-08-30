@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.leonard.maven.plugins</groupId>
   <artifactId>jspc-maven-plugin</artifactId>
-  <version>2.4.7-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
   <name>JSPC Maven Plugin</name>
 
@@ -19,6 +19,7 @@
     <developer>
       <id>tcollignon</id>
       <name>Thomas Collignon</name>
+      <email>tomiphone3G@gmail</email>
     </developer>
   </developers>
 
@@ -26,13 +27,13 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-    <java.compilation.level>1.7</java.compilation.level>
+    <maven.site.plugin.version>3.6</maven.site.plugin.version>
+    <maven.plugin.plugin.version>3.5</maven.plugin.plugin.version>
+    <maven.version>3.3.9</maven.version>
+    <java.compilation.level>1.8</java.compilation.level>
+    <tomcat.version>9.0.8</tomcat.version>
     <maven.compiler.source>${java.compilation.level}</maven.compiler.source>
     <maven.compiler.target>${java.compilation.level}</maven.compiler.target>
-    <maven.version>3.3.9</maven.version>
-    <maven.plugin.plugin.version>3.5</maven.plugin.plugin.version>
-    <maven.site.plugin.version>3.6</maven.site.plugin.version>
-    <tomcat.version>8.5.8</tomcat.version>
   </properties>
 
   <scm>
@@ -72,37 +73,37 @@
     <dependency>
       <groupId>org.apache.ant</groupId>
       <artifactId>ant</artifactId>
-      <version>1.8.2</version>
+      <version>1.10.1</version>
     </dependency>
 
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util</artifactId>
-      <version>7.4.1.v20110513</version>
+      <version>9.4.7.v20170914</version>
     </dependency>
-
+    
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
       <version>${maven.version}</version>
     </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-artifact</artifactId>
-      <version>${maven.version}</version>
-    </dependency>
-
+    
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
       <version>${maven.version}</version>
     </dependency>
+    
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>3.5.2</version>
+    </dependency>
 
     <dependency>
       <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>4.0.1</version>
     </dependency>
 
     <dependency>
@@ -115,6 +116,13 @@
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-compat</artifactId>
+      <version>${maven.version}</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-model</artifactId>
       <version>${maven.version}</version>
       <scope>test</scope>
     </dependency>
@@ -151,7 +159,7 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
+      	<groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
         <version>${maven.site.plugin.version}</version>
         <executions>
@@ -188,7 +196,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>2.2.1</version>
+        <version>3.0.1</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -201,7 +209,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9.1</version>
+        <version>2.10.4</version>
         <configuration>
           <tags>
             <tag>
@@ -248,7 +256,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.5</version>
+        <version>1.6</version>
         <executions>
           <execution>
             <id>sign-artifacts</id>
@@ -308,7 +316,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.1</version>
+        <version>2.9</version>
         <configuration>
           <dependencyLocationEnabled>false</dependencyLocationEnabled>
         </configuration>

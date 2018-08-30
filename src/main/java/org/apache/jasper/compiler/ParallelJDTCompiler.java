@@ -27,6 +27,8 @@ import org.eclipse.jdt.internal.compiler.Compiler;
 import org.eclipse.jdt.internal.compiler.classfmt.*;
 import org.eclipse.jdt.internal.compiler.env.*;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
+import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 
 import io.leonard.maven.plugins.jspc.JspCContextAccessor;
@@ -119,9 +121,133 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
   class NullEnvironmentAnswer extends NameEnvironmentAnswer{
 
     public NullEnvironmentAnswer(IBinaryType binaryType, AccessRestriction accessRestriction) {
-      super(binaryType, accessRestriction);
+      super(new NullBinaryType(), accessRestriction);
     }
     
+  }
+  
+  class NullBinaryType implements IBinaryType{
+
+	@Override
+	public int getModifiers() {
+		return 0;
+	}
+
+	@Override
+	public boolean isBinaryType() {
+		return false;
+	}
+
+	@Override
+	public char[] getFileName() {
+		return null;
+	}
+
+	@Override
+	public IBinaryAnnotation[] getAnnotations() {
+		return null;
+	}
+
+	@Override
+	public IBinaryTypeAnnotation[] getTypeAnnotations() {
+		return null;
+	}
+
+	@Override
+	public char[] getEnclosingMethod() {
+		return null;
+	}
+
+	@Override
+	public char[] getEnclosingTypeName() {
+		return null;
+	}
+
+	@Override
+	public IBinaryField[] getFields() {
+		return null;
+	}
+
+	@Override
+	public char[] getModule() {
+		return null;
+	}
+
+	@Override
+	public char[] getGenericSignature() {
+		return null;
+	}
+
+	@Override
+	public char[][] getInterfaceNames() {
+		return null;
+	}
+
+	@Override
+	public IBinaryNestedType[] getMemberTypes() {
+		return null;
+	}
+
+	@Override
+	public IBinaryMethod[] getMethods() {
+		return null;
+	}
+
+	@Override
+	public char[][][] getMissingTypeNames() {
+		return null;
+	}
+
+	@Override
+	public char[] getName() {
+		return null;
+	}
+
+	@Override
+	public char[] getSourceName() {
+		return null;
+	}
+
+	@Override
+	public char[] getSuperclassName() {
+		return null;
+	}
+
+	@Override
+	public long getTagBits() {
+		return 0;
+	}
+
+	@Override
+	public boolean isAnonymous() {
+		return false;
+	}
+
+	@Override
+	public boolean isLocal() {
+		return false;
+	}
+
+	@Override
+	public boolean isMember() {
+		return false;
+	}
+
+	@Override
+	public char[] sourceFileName() {
+		return null;
+	}
+
+	@Override
+	public ITypeAnnotationWalker enrichWithExternalAnnotationsFor(ITypeAnnotationWalker walker, Object member,
+			LookupEnvironment environment) {
+		return null;
+	}
+
+	@Override
+	public ExternalAnnotationStatus getExternalAnnotationStatus() {
+		return null;
+	}
   }
 
   final INameEnvironment env = new INameEnvironment() {
@@ -253,9 +379,7 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
    * Compile the servlet from .java file to .class file
    */
   @Override
-  protected void generateClass(String[] smap)
-      throws FileNotFoundException, JasperException, Exception {
-
+  protected void generateClass(Map<String, SmapStratum> smaps) throws FileNotFoundException, JasperException, Exception {
       long t1 = 0;
       if (log.isDebugEnabled()) {
           t1 = System.currentTimeMillis();
@@ -319,18 +443,23 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
           } else if(opt.equals("1.8")) {
               settings.put(CompilerOptions.OPTION_Source,
                            CompilerOptions.VERSION_1_8);
-          } else if(opt.equals("1.9")) {
+          // Version format changed from Java 9 onwards.
+          // Support old format that was used in EA implementation as well
+          } else if(opt.equals("9") || opt.equals("1.9")) {
               settings.put(CompilerOptions.OPTION_Source,
-                           CompilerOptions.VERSION_1_9);
+                           CompilerOptions.VERSION_9);
+          } else if(opt.equals("10")) {
+              settings.put(CompilerOptions.OPTION_Source,
+                           CompilerOptions.VERSION_10);
           } else {
               log.warn("Unknown source VM " + opt + " ignored.");
               settings.put(CompilerOptions.OPTION_Source,
-                      CompilerOptions.VERSION_1_7);
+                      CompilerOptions.VERSION_1_8);
           }
       } else {
-          // Default to 1.7
+          // Default to 1.8
           settings.put(CompilerOptions.OPTION_Source,
-                  CompilerOptions.VERSION_1_7);
+                  CompilerOptions.VERSION_1_8);
       }
 
       // Target JVM
@@ -368,22 +497,29 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
                            CompilerOptions.VERSION_1_8);
               settings.put(CompilerOptions.OPTION_Compliance,
                       CompilerOptions.VERSION_1_8);
-          } else if(opt.equals("1.9")) {
+          // Version format changed from Java 9 onwards.
+          // Support old format that was used in EA implementation as well
+          } else if(opt.equals("9") || opt.equals("1.9")) {
               settings.put(CompilerOptions.OPTION_TargetPlatform,
-                           CompilerOptions.VERSION_1_9);
+                           CompilerOptions.VERSION_9);
               settings.put(CompilerOptions.OPTION_Compliance,
-                      CompilerOptions.VERSION_1_9);
+                      CompilerOptions.VERSION_9);
+          } else if(opt.equals("10")) {
+              settings.put(CompilerOptions.OPTION_TargetPlatform,
+                      CompilerOptions.VERSION_10);
+              settings.put(CompilerOptions.OPTION_Compliance,
+                      CompilerOptions.VERSION_10);
           } else {
               log.warn("Unknown target VM " + opt + " ignored.");
               settings.put(CompilerOptions.OPTION_TargetPlatform,
-                      CompilerOptions.VERSION_1_7);
+                      CompilerOptions.VERSION_1_8);
           }
       } else {
-          // Default to 1.7
+          // Default to 1.8
           settings.put(CompilerOptions.OPTION_TargetPlatform,
-                  CompilerOptions.VERSION_1_7);
+                  CompilerOptions.VERSION_1_8);
           settings.put(CompilerOptions.OPTION_Compliance,
-                  CompilerOptions.VERSION_1_7);
+                  CompilerOptions.VERSION_1_8);
       }
 
       final IProblemFactory problemFactory =
@@ -476,7 +612,7 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
 
       // JSR45 Support
       if (! options.isSmapSuppressed()) {
-          SmapUtil.installSmap(smap);
+          SmapUtil.installSmap(smaps);
       }
   }
 }

@@ -22,6 +22,8 @@ import java.util.concurrent.*;
 import org.apache.jasper.*;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.*;
+import org.apache.maven.plugins.annotations.*;
+import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.*;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
@@ -37,24 +39,17 @@ import org.eclipse.jetty.util.IO;
  * but has the following improvements:
  * </p>
  * <ul>
- * <li>Faster: on my test project I was able to cut down the compilation
- * time by about 40%
- * </li>
- * <li>Indication of the progress of the compilation by showing which JSP
- * is currently being compiled
- * </li>
+ *  <li>Faster: ability of multi-threading see <b>threads</b> parameter</li> 
+ *  <li>Not stop at the first error : see <b>stopAtFirstError</b> parameter</li>
  * </ul>
  * <p>
- * The compiler used in this plugin the Apache Jasper 8.5.8.
+ * The compiler used in this plugin the Apache Jasper 9.0.8 but it can be overloaded.
  * </p>
  *
  * @author <a href="mailto:leonard.ehrenfrie@web.de">Leonard Ehrenfried</a>
- * @goal compile
- * @phase process-classes
- * @requiresDependencyResolution compile
  * @description Runs jspc compiler to produce .java and .class files
- * @threadSafe true
  */
+@Mojo(name = "compile", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class JspcMojo extends AbstractMojo {
 
   private static final String WEB_XML = "web.xml";
@@ -62,12 +57,10 @@ public class JspcMojo extends AbstractMojo {
 
   /**
    * The maven project.
-   *
-   * @parameter property="project"
-   * @required
-   * @readonly
    */
+  @Parameter(defaultValue="${project}", readonly=true, required=true)
   private MavenProject project;
+  
   /**
    * File into which to generate the &lt;servlet&gt; and
    * &lt;servlet-mapping&gt; tags for the compiled jsps.
@@ -75,167 +68,161 @@ public class JspcMojo extends AbstractMojo {
    * <p>
    * If multithreading mode is active (threads > 1), then this filename
    * will be suffixed by ".threadIndex" (example : webfrag.xml.3).
-   *
-   * @parameter default-value="${basedir}/target/webfrag.xml"
    */
+  @Parameter(defaultValue="${basedir}/target/webfrag.xml")
   private String webXmlFragment;
+  
   /**
    * Optional. A marker string in the src web.xml file which indicates where
    * to merge in the generated web.xml fragment. Note that the marker string
    * will NOT be preserved during the insertion. Can be left blank, in which
    * case the generated fragment is inserted just before the &lt;/web-app&gt;
    * line
-   *
-   * @parameter
    */
+  @Parameter
   private String insertionMarker;
+  
   /**
    * Merge the generated fragment file with the web.xml from
    * webAppSourceDirectory. The merged file will go into the same directory as
    * the webXmlFragment.
-   *
-   * @parameter default-value="true"
    */
+  @Parameter(defaultValue="true")
   private boolean mergeFragment;
+  
   /**
    * The destination directory into which to put the compiled jsps.
-   *
-   * @parameter default-value="${project.build.outputDirectory}"
    */
+  @Parameter(defaultValue="${project.build.outputDirectory}")
   private String generatedClasses;
+  
   /**
    * Controls whether or not .java files generated during compilation will be
    * preserved.
-   *
-   * @parameter default-value="false"
    */
+  @Parameter(defaultValue="false")
   private boolean keepSources;
+  
   /**
    * Default root package for all generated classes
-   *
-   * @parameter default-value="jsp"
    */
+  @Parameter(defaultValue="jsp")
   private String packageRoot;
+  
   /**
    * Root directory for all html/jsp etc files
-   *
-   * @parameter default-value="${basedir}/src/main/webapp"
    */
+  @Parameter(defaultValue="${basedir}/src/main/webapp")
   private String webAppSourceDirectory;
+  
   /**
    * Location of web.xml. Defaults to src/main/webapp/web.xml.
-   *
-   * @parameter default-value="${basedir}/src/main/webapp/WEB-INF/web.xml"
    */
+  @Parameter(defaultValue="${basedir}/src/main/webapp/WEB-INF/web.xml")
   private String webXml;
+  
   /**
    * The comma separated list of patterns for file extensions to be processed. By default
    * will include all .jsp and .jspx files.
-   *
-   * @parameter default-value="**\/*.jsp, **\/*.jspx,  **\/*.jspf"
    */
+  @Parameter(defaultValue="**\\/*.jsp, **\\/*.jspx,  **\\/*.jspf")
   private String[] includes;
+  
   /**
    * The comma separated list of file name patters to exclude from compilation.
-   *
-   * @parameter default_value="**\/.svn\/**";
    */
+  @Parameter(defaultValue="**\\/.svn\\/**")
   private String[] excludes;
+  
   /**
    * The location of the compiled classes for the webapp
-   *
-   * @parameter property="project.build.outputDirectory"
    */
+  @Parameter(defaultValue="${project.build.outputDirectory}")
   private File classesDirectory;
+  
   /**
    * Whether or not to output more verbose messages during compilation.
-   *
-   * @parameter default-value="false";
    */
+  @Parameter(defaultValue="false")
   private boolean verbose;
+  
   /**
    * If true, validates tlds when parsing.
-   *
-   * @parameter default-value="false";
    */
+  @Parameter(defaultValue="false")
   private boolean validateXml;
+  
   /**
    * The encoding scheme to use.
-   *
-   * @parameter default-value="UTF-8"
    */
+  @Parameter(defaultValue="UTF-8")
   private String javaEncoding;
+  
   /**
    * Whether or not to generate JSR45 compliant debug info
-   *
-   * @parameter default-value="true";
    */
+  @Parameter(defaultValue="true")
   private boolean suppressSmap;
+  
   /**
    * Whether or not to ignore precompilation errors caused by jsp fragments.
-   *
-   * @parameter default-value="false"
    */
+  @Parameter(defaultValue="false")
   private boolean ignoreJspFragmentErrors;
+  
   /**
    * Allows a prefix to be appended to the standard schema locations so that
    * they can be loaded from elsewhere.
-   *
-   * @parameter
    */
+  @Parameter
   private String schemaResourcePrefix;
+  
   /**
    * Fail the build and stop at the first jspc error.
    * If set to "false", all jsp will be compiled even if they raise errors, and all errors will be listed when they raise.
    * In this case the build will fail too.
    * In case of threads > 1 and stopAtFirstError=true, each thread can have is own first error.
-   *
-   * @parameter default-value="true"
    */
+  @Parameter(defaultValue="true")
   private boolean stopAtFirstError;
+  
   /**
    * The number of threads will be used for compile all of the jsps.
    * Number total of jsps will be divided by thread number.
    * Each part will be given to differents thread.
-   *
-   * @parameter default-value="1"
    */
+  @Parameter(defaultValue="1")
   private int threads;
 
   /**
    * Whether Jsp Tag Pooling should be enabled.
-   *
-   * @parameter default-value="true"
    */
+  @Parameter(defaultValue="true")
   private boolean enableJspTagPooling;
 
   /**
    * Should white spaces in template text between actions or directives be trimmed?
-   *
-   * @parameter default-value="false"
    */
+  @Parameter(defaultValue="false")
   private boolean trimSpaces;
 
   /**
    * Should text strings be generated as char arrays, to improve performance in some cases?
-   *
-   * @parameter default-value="false"
    */
+  @Parameter(defaultValue="false")
   private boolean genStringAsCharArray;
 
   /**
    * Version of Java used to compile the jsp files.
-   *
-   * @parameter default-value="1.7"
    */
+  @Parameter(defaultValue="1.8")
   private String compilerVersion;
   
   /**
    * Name of the compiler class used to compile the jsp files.
    * If threads parameter is greater than 2, then maybe the compilerClass "org.apache.jasper.compiler.ParallelJDTCompiler" will be more efficient
-   *
-   * @parameter default-value="org.apache.jasper.compiler.JDTCompiler"
    */
+  @Parameter(defaultValue="org.apache.jasper.compiler.JDTCompiler")
   private String compilerClass;
   
   private Map<String,NameEnvironmentAnswer> resourcesCache = new ConcurrentHashMap<>();
@@ -286,7 +273,7 @@ public class JspcMojo extends AbstractMojo {
     }
   }
 
-  public void compile() throws Exception {
+  public void compile() throws IOException, InterruptedException, MojoExecutionException, ExecutionException, JasperException {
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
 
     ArrayList<URL> urls = new ArrayList<URL>();
@@ -368,7 +355,7 @@ public class JspcMojo extends AbstractMojo {
     jspc.setJavaEncoding(javaEncoding);
     jspc.setFailOnError(stopAtFirstError);
     jspc.setPoolingEnabled(enableJspTagPooling);
-    jspc.setTrimSpaces(trimSpaces);
+    jspc.setTrimSpaces(trimSpaces ? TrimSpacesOption.TRUE : TrimSpacesOption.FALSE);
     jspc.setGenStringAsCharArray(genStringAsCharArray);
     jspc.setCompilerSourceVM(compilerVersion);
     jspc.setCompilerTargetVM(compilerVersion);
@@ -444,13 +431,7 @@ public class JspcMojo extends AbstractMojo {
       File generatedClassesDir = new File(generatedClasses);
 
       if (generatedClassesDir.exists() && generatedClassesDir.isDirectory()) {
-        delete(generatedClassesDir, new FileFilter() {
-
-          @Override
-          public boolean accept(File f) {
-            return f.isDirectory() || f.getName().endsWith(".java");
-          }
-        });
+        delete(generatedClassesDir, f -> f.isDirectory() || f.getName().endsWith(".java"));
       }
     }
   }
