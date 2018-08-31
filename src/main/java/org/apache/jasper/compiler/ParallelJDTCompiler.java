@@ -394,7 +394,7 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
                   + ctxt.getServletClassName();
       String[] fileNames = new String[] {sourceFile};
       String[] classNames = new String[] {targetClassName};
-      final ArrayList<JavacErrorDetail> problemList = new ArrayList<>();
+      final List<JavacErrorDetail> problemList = new ArrayList<>();
 
       
       final IErrorHandlingPolicy policy =
@@ -563,7 +563,7 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
                               classFileName.append(".class");
                               try (FileOutputStream fout = new FileOutputStream(
                                       classFileName.toString());
-                                      BufferedOutputStream bos = new BufferedOutputStream(fout);) {
+                                      BufferedOutputStream bos = new BufferedOutputStream(fout)) {
                                   bos.write(bytes);
                               }
                           }
@@ -591,7 +591,10 @@ public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
 
       if (!ctxt.keepGenerated()) {
           File javaFile = new File(ctxt.getServletJavaFileName());
-          javaFile.delete();
+          if (!javaFile.delete()) {
+              throw new JasperException(Localizer.getMessage(
+                      "jsp.warning.compiler.javafile.delete.fail", javaFile));
+          }
       }
 
       if (!problemList.isEmpty()) {

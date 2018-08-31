@@ -10,7 +10,7 @@
 	<body>
 		Hello <%=hello %>
     
-        <h:response3 name3="Robert"/>
+    	<%@ include file="include3.jspf"%>
 	</body>  
 
 </html>

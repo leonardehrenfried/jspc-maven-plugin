@@ -1,0 +1,3 @@
+<%@ taglib tagdir="/WEB-INF/tags" prefix="h" %>
+
+<h:response3 name3="Robert"/>
