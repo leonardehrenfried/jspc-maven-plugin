@@ -1,8 +1,6 @@
 
 <!--
 Automatically created by Apache Tomcat JspC.
-Place this fragment in the web.xml before all icon, display-name,
-description, distributable, and context-param elements.
 -->
 
     <servlet>
@@ -16,7 +14,5 @@ description, distributable, and context-param elements.
     </servlet-mapping>
 
 <!--
-All session-config, mime-mapping, welcome-file-list, error-page, taglib,
-resource-ref, security-constraint, login-config, security-role,
-env-entry, and ejb-ref elements should follow this fragment.
+End of content automatically created by Apache Tomcat JspC.
 -->
