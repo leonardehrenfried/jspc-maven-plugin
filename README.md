@@ -94,9 +94,12 @@ Full documentation of the goal is available at http://leonardehrenfried.github.c
 ## Use another JSP compiler
 
 By default this plugin use org.apache.jasper.compiler.JDTCompiler (see compilerClass goal option). But if the number of threads is over 2, 
-this compiler has too much synchronization overheas and hence is no very not very performant. 
+this compiler has too much synchronization overheas and hence is no very not very performant.
 
 To improve this is possible to user another compilerClass `org.apache.jasper.compiler.ParallelJDTCompiler`, which reduces synchronization.
+
+Note : With Tomcat 9 the compiler `org.apache.jasper.compiler.ParallelJDTCompiler` will not work very well. It needs some fix.
+We advice to use the standard `org.apache.jasper.compiler.JDTCompiler` instead.
 
 ## Release process
 
