@@ -27,7 +27,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-    <maven.site.plugin.version>3.6</maven.site.plugin.version>
+    <maven.site.plugin.version>3.7.1</maven.site.plugin.version>
     <maven.plugin.plugin.version>3.5</maven.plugin.plugin.version>
     <maven.version>3.3.9</maven.version>
     <java.compilation.level>1.8</java.compilation.level>
@@ -209,7 +209,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.10.4</version>
+        <version>3.0.1</version>
         <configuration>
           <tags>
             <tag>
@@ -316,18 +316,18 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.9</version>
+        <version>3.0.0</version>
         <configuration>
           <dependencyLocationEnabled>false</dependencyLocationEnabled>
         </configuration>
         <reportSets>
           <reportSet>
             <reports>
-              <report>project-team</report>
-              <report>mailing-list</report>
-              <report>cim</report>
-              <report>issue-tracking</report>
-              <report>license</report>
+              <report>team</report>
+              <report>mailing-lists</report>
+              <report>ci-management</report>
+              <report>issue-management</report>
+              <report>licenses</report>
               <report>scm</report>
             </reports>
           </reportSet>
