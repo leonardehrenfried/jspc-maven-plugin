@@ -3,13 +3,11 @@ package io.leonard.maven.plugins.jspc;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.util.List;
 
 import org.apache.maven.plugin.testing.MojoRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 
 /**
  * Test {@link JspcMojo}
@@ -43,8 +41,8 @@ public class TestJspcMojo {
 
     // Then
     Path webfrag = Paths.get("target/test-classes/unit/project_one_jsp/target/webfrag.xml");
-    byte[] actualWebfrag = Files.readAllBytes(webfrag);
-    byte[] expectedWebFrag = Files.readAllBytes(expectedWebfrag);
+    List<String> actualWebfrag = Files.readAllLines(webfrag);
+    List<String> expectedWebFrag = Files.readAllLines(expectedWebfrag);
     assertThat(actualWebfrag).isEqualTo(expectedWebFrag);
   }
   

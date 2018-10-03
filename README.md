@@ -33,7 +33,7 @@ It has the following improvements compared to jetty-jspc-maven-plugin:
 * More descriptive error messages: Under Maven 3 this plugin shows a clear indication of what caused the error and which file it is in
 * Not stop at the first error (depends plugin configuration)
 
-The compiler used by default in this plugin is [Apache Jasper 9.0.8](http://repo1.maven.org/maven2/org/apache/tomcat/tomcat-jasper/9.0.8/).
+The compiler used by default in this plugin is [Apache Jasper 9.0.12](http://repo1.maven.org/maven2/org/apache/tomcat/tomcat-jasper/9.0.12/).
 
 If the Jasper compiler version needs to be overloaded, the plugin must be configured as follows:
 
@@ -94,9 +94,12 @@ Full documentation of the goal is available at http://leonardehrenfried.github.c
 ## Use another JSP compiler
 
 By default this plugin use org.apache.jasper.compiler.JDTCompiler (see compilerClass goal option). But if the number of threads is over 2, 
-this compiler has too much synchronization overheas and hence is no very not very performant. 
+this compiler has too much synchronization overheas and hence is no very not very performant.
 
 To improve this is possible to user another compilerClass `org.apache.jasper.compiler.ParallelJDTCompiler`, which reduces synchronization.
+
+Note : With Tomcat 9 the compiler `org.apache.jasper.compiler.ParallelJDTCompiler` will not work very well. It needs some fix.
+We advice to use the standard `org.apache.jasper.compiler.JDTCompiler` instead.
 
 ## Release process
 
