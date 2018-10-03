@@ -19,6 +19,8 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import javax.xml.parsers.*;
+
 import org.apache.jasper.*;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.*;
@@ -28,6 +30,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.*;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.eclipse.jetty.util.IO;
+import org.xml.sax.SAXException;
 
 /**
  * <p>
@@ -482,7 +485,20 @@ public class JspcMojo extends AbstractMojo {
           writeEndOfWebXmlMergedFile(webXmlReader, mergedWebXmlWriter, marker);
         }
       }
+      
+	  validateXmlContent(mergedWebXml);
     }
+  }
+
+  private void validateXmlContent(File mergedWebXml) throws IOException {
+    try {
+	    DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+		parser.parse(mergedWebXml);
+	} catch (ParserConfigurationException e) {
+        getLog().debug("Unable to instanciate Document Builder, so web.xml merged validation is not possible", e);
+	} catch (SAXException e) {
+		getLog().error("Error when validating XML content of merged web.xml !", e);
+  	}
   }
 
   private String writeStartOfWebXmlMergedFile(BufferedReader webXmlReader, PrintWriter mergedWebXmlWriter) throws IOException {
