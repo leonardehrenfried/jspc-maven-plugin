@@ -46,7 +46,7 @@ import org.xml.sax.SAXException;
  *  <li>Not stop at the first error : see <b>stopAtFirstError</b> parameter</li>
  * </ul>
  * <p>
- * The compiler used in this plugin the Apache Jasper 9.0.8 but it can be overloaded.
+ * The compiler used in this plugin the Apache Jasper 9.0.12 but it can be overloaded.
  * </p>
  *
  * @author <a href="mailto:leonard.ehrenfrie@web.de">Leonard Ehrenfried</a>
@@ -346,7 +346,7 @@ public class JspcMojo extends AbstractMojo {
 
   private JspCContextAccessor initJspc(StringBuilder classpathStr, int threadIndex, JspCContextAccessor topJspC) throws IOException, JasperException {
     JspCContextAccessor jspc = new JspCContextAccessor();
-    jspc.setWebXmlFragment(getwebXmlFragmentFilename(threadIndex));
+    jspc.setWebXmlInclude(getwebXmlFragmentFilename(threadIndex));
     jspc.setUriroot(webAppSourceDirectory);
     jspc.setPackage(packageRoot);
     jspc.setOutputDir(generatedClasses);
