@@ -462,8 +462,9 @@ public class JspcMojo extends AbstractMojo {
    * inserted at the end of the file just before the &lt;/webapp&gt;
    *
    * @throws IOException by {@link JspcMojo#writeStartOfWebXmlMergedFile} method when reading xml file
+   * @throws MojoExecutionException 
    */
-  public void mergeWebXml() throws IOException {
+  public void mergeWebXml() throws IOException, MojoExecutionException {
     if (mergeFragment) {
 
       // open the src web.xml
@@ -486,18 +487,18 @@ public class JspcMojo extends AbstractMojo {
         }
       }
       
-	  validateXmlContent(mergedWebXml);
+	    validateXmlContent(mergedWebXml);
     }
   }
 
-  private void validateXmlContent(File mergedWebXml) throws IOException {
+  private void validateXmlContent(File mergedWebXml) throws IOException, MojoExecutionException {
     try {
 	    DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		parser.parse(mergedWebXml);
-	} catch (ParserConfigurationException e) {
-        getLog().debug("Unable to instanciate Document Builder, so web.xml merged validation is not possible", e);
-	} catch (SAXException e) {
-		getLog().error("Error when validating XML content of merged web.xml !", e);
+		  parser.parse(mergedWebXml);
+	  } catch (ParserConfigurationException e) {
+      getLog().debug("Unable to instanciate Document Builder, so web.xml merged validation is not possible", e);
+	  } catch (SAXException e) {
+		  throw new MojoExecutionException("Error when validating XML content of merged web.xml !", e);
   	}
   }
 
