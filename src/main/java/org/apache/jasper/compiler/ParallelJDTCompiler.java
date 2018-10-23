@@ -30,17 +30,12 @@ import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 
 /**
- * JDT class compiler. This compiler will load source dependencies from the
- * context classloader, reducing dramatically disk access during the compilation
- * process.
- *
- * Based on code from Cocoon2.
- *
- * @author Remy Maucherat
+ * Based on {@link JDTCompiler}.<br>
+ * Try to avoid some synchronization with this compiler when it use in parallel (with more than 4 threads)
  */
-public class ParallelJDTCompiler extends JDTCompiler {
+public class ParallelJDTCompiler extends org.apache.jasper.compiler.Compiler {
 
-	private final Log log = LogFactory.getLog(JDTCompiler.class); // must not be static
+	private final Log log = LogFactory.getLog(ParallelJDTCompiler.class); // must not be static
 
 	public boolean isCheckFileNecessary(char[] packageName) {
 		if (Character.isUpperCase(packageName[0])) {
