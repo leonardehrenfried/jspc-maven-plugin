@@ -72,18 +72,32 @@ public class TestJspcMojo {
     rule.executeMojo(oneJspProject, "compile");
 
     // Then
-    String result = getWebXmlReader().lines().collect(Collectors.joining(System.lineSeparator()));
-    String expectedResult = getExpectedWebXmlReader().lines().collect(Collectors.joining(System.lineSeparator()));
+    String result = getWebXmlReader("project_one_jsp_mergeFragment").lines().collect(Collectors.joining(System.lineSeparator()));
+    String expectedResult = getExpectedWebXmlReader("project_one_jsp_mergeFragment").lines().collect(Collectors.joining(System.lineSeparator()));
+    assertThat(result).isEqualTo(expectedResult);
+  }
+  
+  @Test
+  public void should_return_correct_merged_xml_when_mergeFragment_is_true_many_jsp_4_threads() throws Exception {
+    // Given
+    File oneJspProject = new File("target/test-classes/unit/project_many_jsp_4threads_mergeFragment");
+
+    // When
+    rule.executeMojo(oneJspProject, "compile");
+
+    // Then
+    String result = getWebXmlReader("project_many_jsp_4threads_mergeFragment").lines().collect(Collectors.joining(System.lineSeparator()));
+    String expectedResult = getExpectedWebXmlReader("project_many_jsp_4threads_mergeFragment").lines().collect(Collectors.joining(System.lineSeparator()));
     assertThat(result).isEqualTo(expectedResult);
   }
 
-  private BufferedReader getExpectedWebXmlReader() throws FileNotFoundException {
+  private BufferedReader getExpectedWebXmlReader(String projectName) throws FileNotFoundException {
     return new BufferedReader(new InputStreamReader(
-        new FileInputStream(new File("target/test-classes/unit/project_one_jsp_mergeFragment/src/assert/expectedWebXml.xml"))));
+        new FileInputStream(new File("target/test-classes/unit/" + projectName + "/src/assert/expectedWebXml.xml"))));
   }
 
-  private BufferedReader getWebXmlReader() throws FileNotFoundException {
+  private BufferedReader getWebXmlReader(String projectName) throws FileNotFoundException {
     return new BufferedReader(new InputStreamReader(
-        new FileInputStream(new File("target/test-classes/unit/project_one_jsp_mergeFragment/target/web.xml"))));
+        new FileInputStream(new File("target/test-classes/unit/" + projectName + "/target/web.xml"))));
   }
 }

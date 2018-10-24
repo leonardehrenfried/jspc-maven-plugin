@@ -16,6 +16,7 @@ package io.leonard.maven.plugins.jspc;
 
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -230,10 +231,6 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "org.apache.jasper.compiler.JDTCompiler")
   private String compilerClass;
-
-  public void setMergeFragment(boolean mergeFragment) {
-    this.mergeFragment = mergeFragment;
-  }
 
   private Map<String, NameEnvironmentAnswer> resourcesCache = new ConcurrentHashMap<>();
 
@@ -491,7 +488,7 @@ public class JspcMojo extends AbstractMojo {
       File mergedWebXml = new File(new File(getwebXmlFragmentFilename(0)).getParentFile(), WEB_XML);
       Path mergedWebXmlPath = createAndGetMergeWebXml(mergedWebXml);
 
-      try (BufferedReader webXmlReader = new BufferedReader(new FileReader(webXmlFile))) {
+      try (BufferedReader webXmlReader = new BufferedReader(new InputStreamReader(new FileInputStream(webXmlFile), StandardCharsets.UTF_8))) {
         writeWebXmlMergedFile(webXmlReader, mergedWebXmlPath);
       }
 
@@ -526,7 +523,7 @@ public class JspcMojo extends AbstractMojo {
         writeXmlFragments(mergedWebXmlPath);
         writeEndOfWebappIfNecessary(mergedWebXmlPath, marker);
       } else {
-        Files.write(mergedWebXmlPath, (line + System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+        Files.write(mergedWebXmlPath, (line + System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
       }
     }
     return marker;
@@ -534,7 +531,7 @@ public class JspcMojo extends AbstractMojo {
 
   private void writeEndOfWebappIfNecessary(Path mergedWebXmlPath, String marker) throws IOException {
     if (marker.equals(END_OF_WEBAPP)) {
-      Files.write(mergedWebXmlPath, END_OF_WEBAPP.getBytes(), StandardOpenOption.APPEND);
+      Files.write(mergedWebXmlPath, END_OF_WEBAPP.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
     }
   }
 
