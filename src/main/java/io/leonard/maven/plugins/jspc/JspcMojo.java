@@ -161,6 +161,20 @@ public class JspcMojo extends AbstractMojo {
   private boolean validateXml;
 
   /**
+   * If true, validates web.xml file (xml and xsd see webXmlXsdSchema parameter)
+   * after beeing merge if mergeFragment parameter is true
+   */
+  @Parameter(defaultValue = "true")
+  private boolean validateWebXmlAfterMerge;
+
+  /**
+   * The link to xsd schema to validate web xml file after merging, if
+   * mergeFragment parameter is true
+   */
+  @Parameter(defaultValue = "http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd")
+  private String webXmlXsdSchema;
+
+  /**
    * The encoding scheme to use.
    */
   @Parameter(defaultValue = "UTF-8")
@@ -177,12 +191,6 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "false")
   private boolean ignoreJspFragmentErrors;
-
-  /**
-   * The link to xsd schema to validate web xml file after merging, if mergeFragment parameter is true
-   */
-  @Parameter(defaultValue = "http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd")
-  private String webXmlXsdSchema;
 
   /**
    * Fail the build and stop at the first jspc error. If set to "false", all jsp
@@ -499,7 +507,9 @@ public class JspcMojo extends AbstractMojo {
         writeWebXmlMergedFile(webXmlReader, mergedWebXmlPath);
       }
 
-      validateXmlContent(mergedWebXml);
+      if (validateWebXmlAfterMerge) {
+        validateXmlContent(mergedWebXml);
+      }
     }
   }
 
