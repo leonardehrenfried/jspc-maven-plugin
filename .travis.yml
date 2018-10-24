@@ -1,28 +1,28 @@
 sudo: false
 jdk:
-  - oraclejdk11
-  - oraclejdk10
-  - oraclejdk9
-  - oraclejdk8
+  - openjdk11
+  - openjdk10
+  - openjdk9
+  - openjdk8
   - openjdk8
 language: java
 matrix:
   include:
-  - jdk: oraclejdk8
+  - jdk: openjdk8
     env: CUSTOM_MVN_VERSION="3.3.9"
-  - jdk: oraclejdk8
+  - jdk: openjdk8
     env: CUSTOM_MVN_VERSION="3.5.2"
-  - jdk: oraclejdk9
+  - jdk: openjdk9
     env: CUSTOM_MVN_VERSION="3.3.9"
-  - jdk: oraclejdk9
+  - jdk: openjdk9
     env: CUSTOM_MVN_VERSION="3.5.2"
-  - jdk: oraclejdk10
+  - jdk: openjdk10
     env: CUSTOM_MVN_VERSION="3.3.9"
-  - jdk: oraclejdk10
+  - jdk: openjdk10
     env: CUSTOM_MVN_VERSION="3.5.2"
-  - jdk: oraclejdk11
+  - jdk: openjdk11
     env: CUSTOM_MVN_VERSION="3.3.9"
-  - jdk: oraclejdk11
+  - jdk: openjdk11
     env: CUSTOM_MVN_VERSION="3.5.2"
     
 install:
