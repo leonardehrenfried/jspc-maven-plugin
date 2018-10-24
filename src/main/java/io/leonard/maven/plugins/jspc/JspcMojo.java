@@ -392,7 +392,8 @@ public class JspcMojo extends AbstractMojo {
     } else {
       jspc.setVerbose(0);
     }
-
+    
+    jspc.setThreadCount("1");
     return jspc;
   }
 
