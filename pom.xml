@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.leonard.maven.plugins</groupId>
   <artifactId>jspc-maven-plugin</artifactId>
-  <version>3.0.0-RC3-SNAPSHOT</version>
+  <version>3.0.0-RC3</version>
   <packaging>maven-plugin</packaging>
   <name>JSPC Maven Plugin</name>
 
@@ -40,7 +40,7 @@
     <connection>scm:git:git://github.com/leonardehrenfried/jspc-maven-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:leonardehrenfried/jspc-maven-plugin.git</developerConnection>
     <url>https://github.com/leonardehrenfried/jspc-maven-plugin</url>
-    <tag>HEAD</tag>
+    <tag>jspc-maven-plugin-3.0.0-RC3</tag>
   </scm>
 
   <licenses>
