@@ -21,7 +21,11 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.*;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.*;
 
 import org.apache.jasper.*;
 import org.apache.maven.artifact.Artifact;
@@ -157,6 +161,20 @@ public class JspcMojo extends AbstractMojo {
   private boolean validateXml;
 
   /**
+   * If true, validates web.xml file (xml and xsd see webXmlXsdSchema parameter)
+   * after beeing merge if mergeFragment parameter is true
+   */
+  @Parameter(defaultValue = "true")
+  private boolean validateWebXmlAfterMerge;
+
+  /**
+   * The link to xsd schema to validate web xml file after merging, if
+   * mergeFragment parameter is true
+   */
+  @Parameter(defaultValue = "http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd")
+  private String webXmlXsdSchema;
+
+  /**
    * The encoding scheme to use.
    */
   @Parameter(defaultValue = "UTF-8")
@@ -173,13 +191,6 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "false")
   private boolean ignoreJspFragmentErrors;
-
-  /**
-   * Allows a prefix to be appended to the standard schema locations so that they
-   * can be loaded from elsewhere.
-   */
-  @Parameter
-  private String schemaResourcePrefix;
 
   /**
    * Fail the build and stop at the first jspc error. If set to "false", all jsp
@@ -251,7 +262,7 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("mergeFragment=" + mergeFragment);
       getLog().info("suppressSmap=" + suppressSmap);
       getLog().info("ignoreJspFragmentErrors=" + ignoreJspFragmentErrors);
-      getLog().info("schemaResourcePrefix=" + schemaResourcePrefix);
+      getLog().info("webXmlXsdSchema=" + webXmlXsdSchema);
       getLog().info("stopAtFirstError=" + stopAtFirstError);
       getLog().info("threads=" + threads);
       getLog().info("enableJspTagPooling=" + enableJspTagPooling);
@@ -393,6 +404,9 @@ public class JspcMojo extends AbstractMojo {
       jspc.setVerbose(0);
     }
 
+    // force jspc Thread Count to 1 to avoid parallelism because it has already done
+    // in this plugin
+    jspc.setThreadCount("1");
     return jspc;
   }
 
@@ -471,7 +485,7 @@ public class JspcMojo extends AbstractMojo {
    * If you dont specify the insertionMarker, then the fragment will be inserted
    * at the end of the file just before the &lt;/webapp&gt;
    *
-   * @throws IOException maybe thrown during writing mergedXml file
+   * @throws IOException            maybe thrown during writing mergedXml file
    * @throws MojoExecutionException maybe thrown when validating mergedXml file
    */
   public void mergeWebXml() throws IOException, MojoExecutionException {
@@ -488,11 +502,14 @@ public class JspcMojo extends AbstractMojo {
       File mergedWebXml = new File(new File(getwebXmlFragmentFilename(0)).getParentFile(), WEB_XML);
       Path mergedWebXmlPath = createAndGetMergeWebXml(mergedWebXml);
 
-      try (BufferedReader webXmlReader = new BufferedReader(new InputStreamReader(new FileInputStream(webXmlFile), StandardCharsets.UTF_8))) {
+      try (BufferedReader webXmlReader = new BufferedReader(
+          new InputStreamReader(new FileInputStream(webXmlFile), StandardCharsets.UTF_8))) {
         writeWebXmlMergedFile(webXmlReader, mergedWebXmlPath);
       }
 
-      validateXmlContent(mergedWebXml);
+      if (validateWebXmlAfterMerge) {
+        validateXmlContent(mergedWebXml);
+      }
     }
   }
 
@@ -507,6 +524,12 @@ public class JspcMojo extends AbstractMojo {
     try {
       DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
       parser.parse(mergedWebXml);
+      URL webXmlXsdUrl = new URL(webXmlXsdSchema);
+      Source webXmlSource = new StreamSource(mergedWebXml);
+      SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+      Schema webXmlSchema = schemaFactory.newSchema(webXmlXsdUrl);
+      Validator validator = webXmlSchema.newValidator();
+      validator.validate(webXmlSource);
     } catch (ParserConfigurationException e) {
       getLog().debug("Unable to instanciate Document Builder, so web.xml merged validation is not possible", e);
     } catch (SAXException e) {
@@ -523,7 +546,8 @@ public class JspcMojo extends AbstractMojo {
         writeXmlFragments(mergedWebXmlPath);
         writeEndOfWebappIfNecessary(mergedWebXmlPath, marker);
       } else {
-        Files.write(mergedWebXmlPath, (line + System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+        Files.write(mergedWebXmlPath, (line + System.lineSeparator()).getBytes(StandardCharsets.UTF_8),
+            StandardOpenOption.APPEND);
       }
     }
     return marker;
