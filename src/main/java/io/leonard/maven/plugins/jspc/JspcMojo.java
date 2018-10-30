@@ -161,18 +161,37 @@ public class JspcMojo extends AbstractMojo {
   private boolean validateXml;
 
   /**
-   * If true, validates web.xml file (xml and xsd see webXmlXsdSchema parameter)
+   * If true, validates web.xml file (xml format)
    * after beeing merge if mergeFragment parameter is true
    */
   @Parameter(defaultValue = "true")
   private boolean validateWebXmlAfterMerge;
+  
+  /**
+   * If true, validates web.xml file (xsd see webXmlXsdSchema parameter)
+   * after beeing merge if mergeFragment parameter is true
+   */
+  @Parameter(defaultValue = "true")
+  private boolean validateWebXmlWithXsdAfterMerge;
 
   /**
    * The link to xsd schema to validate web xml file after merging, if
-   * mergeFragment parameter is true
+   * mergeFragment parameter is true.
    */
   @Parameter(defaultValue = "http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd")
   private String webXmlXsdSchema;
+  
+  /**
+   * Optionnal hostname of http proxy (use when validating xsd with external URL)
+   */
+  @Parameter
+  private String httpProxyHost;
+  
+  /**
+   * Optionnal port of http proxy (use when validating xsd with external URL)
+   */
+  @Parameter
+  private String httpProxyPort;
 
   /**
    * The encoding scheme to use.
@@ -510,6 +529,9 @@ public class JspcMojo extends AbstractMojo {
       if (validateWebXmlAfterMerge) {
         validateXmlContent(mergedWebXml);
       }
+      if (validateWebXmlWithXsdAfterMerge) {
+        validateWithXsd(mergedWebXml);
+      }
     }
   }
 
@@ -524,17 +546,36 @@ public class JspcMojo extends AbstractMojo {
     try {
       DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
       parser.parse(mergedWebXml);
-      URL webXmlXsdUrl = new URL(webXmlXsdSchema);
-      Source webXmlSource = new StreamSource(mergedWebXml);
-      SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-      Schema webXmlSchema = schemaFactory.newSchema(webXmlXsdUrl);
-      Validator validator = webXmlSchema.newValidator();
-      validator.validate(webXmlSource);
     } catch (ParserConfigurationException e) {
       getLog().debug("Unable to instanciate Document Builder, so web.xml merged validation is not possible", e);
     } catch (SAXException e) {
       throw new MojoExecutionException("Error when validating XML content of merged web.xml !", e);
     }
+  }
+  
+  private void validateWithXsd(File mergedWebXml) throws IOException, MojoExecutionException {
+    try {
+      setHttpProxyIfNecessary();
+      Source webXmlSource = new StreamSource(mergedWebXml);
+      SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+      Schema webXmlSchema = schemaFactory.newSchema(getWebXmlSchema());
+      Validator validator = webXmlSchema.newValidator();
+      validator.validate(webXmlSource);
+    } catch (SAXException e) {
+      throw new MojoExecutionException("Error when validating with XSD merged web.xml !", e);
+    }
+  }
+  
+  private void setHttpProxyIfNecessary() {
+    if (httpProxyHost != null && !httpProxyHost.isEmpty()) {
+      System.setProperty("http.proxyHost", httpProxyHost);
+      System.setProperty("http.proxyPort", httpProxyPort);
+    }
+  }
+  
+  private StreamSource[] getWebXmlSchema() throws MalformedURLException {
+    URL webXmlXsdUrl = new URL(webXmlXsdSchema);
+    return new StreamSource[] {new StreamSource(webXmlXsdUrl.toExternalForm())};
   }
 
   private String writeWebXmlMergedFile(BufferedReader webXmlReader, Path mergedWebXmlPath) throws IOException {
