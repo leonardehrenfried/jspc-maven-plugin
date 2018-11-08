@@ -171,7 +171,7 @@ public class JspcMojo extends AbstractMojo {
    * If true, validates web.xml file (xsd see webXmlXsdSchema parameter)
    * after beeing merge if mergeFragment parameter is true
    */
-  @Parameter(defaultValue = "true")
+  @Parameter(defaultValue = "false")
   private boolean validateWebXmlWithXsdAfterMerge;
 
   /**
