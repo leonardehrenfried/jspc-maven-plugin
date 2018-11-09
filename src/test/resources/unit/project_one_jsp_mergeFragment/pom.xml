@@ -16,6 +16,7 @@
         <artifactId>jspc-maven-plugin</artifactId>
         <configuration>
           <mergeFragment>true</mergeFragment>
+          <validateWebXmlWithXsdAfterMerge>true</validateWebXmlWithXsdAfterMerge>
         </configuration>
       </plugin>
     </plugins>
