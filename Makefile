@@ -11,3 +11,4 @@ release:
 	mvn release:prepare
 	mvn release:perform
 	mvn release:clean
+	make commit-site
