@@ -103,6 +103,20 @@ public class TestJspcMojo {
     String expectedResult = getExpectedWebXmlReader("project_one_jsp_web_xml_dtd").lines().collect(Collectors.joining(System.lineSeparator()));
     assertThat(result).isEqualTo(expectedResult);
   }
+  
+  @Test
+  public void should_return_correct_merged_xml_when_mergeFragment_is_true_and_httpProxy_given() throws Exception {
+    // Given
+    File oneJspProject = new File("target/test-classes/unit/project_one_jsp_httpProxy");
+
+    // When
+    rule.executeMojo(oneJspProject, "compile");
+
+    // Then
+    String result = getWebXmlReader("project_one_jsp_httpProxy").lines().collect(Collectors.joining(System.lineSeparator()));
+    String expectedResult = getExpectedWebXmlReader("project_one_jsp_httpProxy").lines().collect(Collectors.joining(System.lineSeparator()));
+    assertThat(result).isEqualTo(expectedResult);
+  }
 
   private BufferedReader getExpectedWebXmlReader(String projectName) throws FileNotFoundException {
     return new BufferedReader(new InputStreamReader(

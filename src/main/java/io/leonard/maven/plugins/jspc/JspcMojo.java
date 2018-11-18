@@ -603,10 +603,10 @@ public class JspcMojo extends AbstractMojo {
   
   private void restoreHttpProxy() {
     if (proxyEnvSet) {
-      System.setProperty("http.proxyHost", httpProxyHostBackup);
-      System.setProperty("http.proxyPort", httpProxyPortBackup);
+      System.setProperty("http.proxyHost", httpProxyHostBackup != null ? httpProxyHostBackup : "");
+      System.setProperty("http.proxyPort", httpProxyPortBackup != null ? httpProxyPortBackup : "");
       if (httpNoProxyHosts != null && !httpNoProxyHosts.isEmpty()) {
-        System.setProperty("http.nonProxyHosts", httpNoProxyHostsBackup);
+        System.setProperty("http.nonProxyHosts", httpNoProxyHostsBackup != null ? httpNoProxyHostsBackup : "");
       }
       proxyEnvSet = false;
     }
