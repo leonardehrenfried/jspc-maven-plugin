@@ -182,16 +182,32 @@ public class JspcMojo extends AbstractMojo {
   private String webXmlXsdSchema;
   
   /**
-   * Optionnal hostname of http proxy (use when validating xsd with external URL)
+   * Optionnal hostname of http proxy (use when validating dtd/xsd with external URL)
    */
   @Parameter
   private String httpProxyHost;
   
   /**
-   * Optionnal port of http proxy (use when validating xsd with external URL)
+   * Optionnal port of http proxy (use when validating dtd/xsd with external URL)
    */
   @Parameter
   private String httpProxyPort;
+  
+  /**
+   * Optionnal no proxy hosts (use when validating dtd/xsd with external URL)<br>
+   * A list of hosts that should be reached directly, bypassing the proxy. <br>
+   * This is a list of patterns separated by '|'. <br>
+   * The patterns may start or end with a '*' for wildcards. <br>
+   * Any host matching one of these patterns will be reached through a direct connection instead of through a proxy.<br>
+   * See https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
+   */
+  @Parameter
+  private String httpNoProxyHosts;
+  
+  private boolean proxyEnvSet;
+  private String httpProxyHostBackup;
+  private String httpProxyPortBackup;
+  private String httpNoProxyHostsBackup;
 
   /**
    * The encoding scheme to use.
@@ -544,12 +560,15 @@ public class JspcMojo extends AbstractMojo {
 
   private void validateXmlContent(File mergedWebXml) throws IOException, MojoExecutionException {
     try {
+      setHttpProxyIfNecessary();
       DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
       parser.parse(mergedWebXml);
     } catch (ParserConfigurationException e) {
       getLog().debug("Unable to instanciate Document Builder, so web.xml merged validation is not possible", e);
     } catch (SAXException e) {
       throw new MojoExecutionException("Error when validating XML content of merged web.xml !", e);
+    } finally {
+      restoreHttpProxy();
     }
   }
   
@@ -563,13 +582,33 @@ public class JspcMojo extends AbstractMojo {
       validator.validate(webXmlSource);
     } catch (SAXException e) {
       throw new MojoExecutionException("Error when validating with XSD merged web.xml !", e);
+    } finally {
+      restoreHttpProxy();
     }
   }
   
   private void setHttpProxyIfNecessary() {
-    if (httpProxyHost != null && !httpProxyHost.isEmpty()) {
+    if (!proxyEnvSet && httpProxyHost != null && !httpProxyHost.isEmpty()) {
+      proxyEnvSet = true;
+      httpProxyHostBackup = System.getProperty("http.proxyHost");
       System.setProperty("http.proxyHost", httpProxyHost);
+      httpProxyPortBackup = System.getProperty("http.proxyPort");
       System.setProperty("http.proxyPort", httpProxyPort);
+      if (httpNoProxyHosts != null && !httpNoProxyHosts.isEmpty()) {
+        httpNoProxyHostsBackup = System.getProperty("http.nonProxyHosts");
+        System.setProperty("http.nonProxyHosts", httpNoProxyHosts);
+      }
+    }
+  }
+  
+  private void restoreHttpProxy() {
+    if (proxyEnvSet) {
+      System.setProperty("http.proxyHost", httpProxyHostBackup != null ? httpProxyHostBackup : "");
+      System.setProperty("http.proxyPort", httpProxyPortBackup != null ? httpProxyPortBackup : "");
+      if (httpNoProxyHosts != null && !httpNoProxyHosts.isEmpty()) {
+        System.setProperty("http.nonProxyHosts", httpNoProxyHostsBackup != null ? httpNoProxyHostsBackup : "");
+      }
+      proxyEnvSet = false;
     }
   }
   
