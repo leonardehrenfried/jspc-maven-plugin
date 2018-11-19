@@ -39,43 +39,40 @@ If the Jasper compiler version needs to be overloaded, the plugin must be config
 
 ```xml
 <build>
-....
-<plugin>
- <groupId>io.leonard.maven.plugins</groupId>
-  <artifactId>jspc-maven-plugin</artifactId>
-  <version>${ENTER_VERSION_HERE}</version>
-   <executions>
-    <execution>
-     <id>jspc</id>
-     <goals>
-     <goal>compile</goal>
-    </goals>
-    <configuration>
-    </configuration>
-  </execution>
- </executions>
-
- <dependencies>
-  	<dependency>
-  		<groupId>org.apache.tomcat</groupId>
-  		<artifactId>tomcat-jasper</artifactId>
-  		<version>${ENTER_JASPER_VERSION_HERE}</version>
-  		<exclusions>
-  			<exclusion>
-  				<groupId>org.eclipse.jdt.core.compiler</groupId>
-  				<artifactId>ecj</artifactId>
-  			</exclusion>
-  		</exclusions>
-  	</dependency>
-
-  	<dependency>
-  		<groupId>org.eclipse.jdt.core.compiler</groupId>
-  		<artifactId>ecj</artifactId>
-  		<version>4.6.1</version>
-  	</dependency>
-  </dependencies>
-</plugin>
-...
+  ....
+  <plugin>
+    <groupId>io.leonard.maven.plugins</groupId>
+    <artifactId>jspc-maven-plugin</artifactId>
+    <version>${ENTER_VERSION_HERE}</version>
+    <executions>
+      <execution>
+        <id>jspc</id>
+        <goals>
+          <goal>compile</goal>
+        </goals>
+        <configuration />
+      </execution>
+    </executions>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.tomcat</groupId>
+        <artifactId>tomcat-jasper</artifactId>
+        <version>${ENTER_JASPER_VERSION_HERE}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.eclipse.jdt.core.compiler</groupId>
+            <artifactId>ecj</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jdt.core.compiler</groupId>
+        <artifactId>ecj</artifactId>
+        <version>4.6.1</version>
+      </dependency>
+    </dependencies>
+  </plugin>
+  ...
 </build>
 ```
 
