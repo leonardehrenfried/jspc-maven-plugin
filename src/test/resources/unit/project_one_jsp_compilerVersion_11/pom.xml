@@ -16,6 +16,7 @@
         <artifactId>jspc-maven-plugin</artifactId>
         <configuration>
           <compilerVersion>11</compilerVersion>
+          <compilerClass>org.apache.jasper.compiler.JspcMojoJDTCompiler</compilerClass>
         </configuration>
       </plugin>
     </plugins>
