@@ -15,6 +15,8 @@ import org.junit.*;
  * Test {@link JspcMojo}
  */
 public class TestJspcMojo {
+  
+  private final static int JAVA_11_BYTECODE_VERSION = 55;
 
   @Rule
   public MojoRule rule = new MojoRule();
@@ -116,6 +118,20 @@ public class TestJspcMojo {
     String result = getWebXmlReader("project_one_jsp_httpProxy").lines().collect(Collectors.joining(System.lineSeparator()));
     String expectedResult = getExpectedWebXmlReader("project_one_jsp_httpProxy").lines().collect(Collectors.joining(System.lineSeparator()));
     assertThat(result).isEqualTo(expectedResult);
+  }
+  
+  @Test
+  public void should_return_one_compiled_jsp_in_bytecode_java11_when_executeMojo_on_project_one_jsp_compilerVersion_11() throws Exception {
+    // Given
+    File oneJspProject = new File("target/test-classes/unit/project_one_jsp_compilerVersion_11");
+
+    // When
+    rule.executeMojo(oneJspProject, "compile");
+
+    // Then
+    Path indexJspPath = Paths.get("target/test-classes/unit/project_one_jsp_compilerVersion_11/target/classes/jsp/jsp/index_jsp.class");
+    int[] byteCodeVersion = JspcMojoTestUtils.getClassVersion(indexJspPath);
+    assertThat(byteCodeVersion[0]).isEqualTo(JAVA_11_BYTECODE_VERSION);
   }
 
   private BufferedReader getExpectedWebXmlReader(String projectName) throws FileNotFoundException {
