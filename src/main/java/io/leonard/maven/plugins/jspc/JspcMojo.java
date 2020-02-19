@@ -14,26 +14,56 @@
 //========================================================================
 package io.leonard.maven.plugins.jspc;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.util.*;
-import java.util.concurrent.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.XMLConstants;
-import javax.xml.parsers.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.*;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 
-import org.apache.jasper.*;
+import org.apache.jasper.JasperException;
+import org.apache.jasper.JspC;
+import org.apache.jasper.TrimSpacesOption;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.*;
-import org.apache.maven.plugins.annotations.*;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.*;
+import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.xml.sax.SAXException;
 
@@ -166,7 +196,7 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "true")
   private boolean validateWebXmlAfterMerge;
-  
+
   /**
    * If true, validates web.xml file (xsd see webXmlXsdSchema parameter)
    * after beeing merge if mergeFragment parameter is true
@@ -180,19 +210,19 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd")
   private String webXmlXsdSchema;
-  
+
   /**
    * Optionnal hostname of http proxy (use when validating dtd/xsd with external URL)
    */
   @Parameter
   private String httpProxyHost;
-  
+
   /**
    * Optionnal port of http proxy (use when validating dtd/xsd with external URL)
    */
   @Parameter
   private String httpProxyPort;
-  
+
   /**
    * Optionnal no proxy hosts (use when validating dtd/xsd with external URL)<br>
    * A list of hosts that should be reached directly, bypassing the proxy. <br>
@@ -203,7 +233,7 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter
   private String httpNoProxyHosts;
-  
+
   private boolean proxyEnvSet;
   private String httpProxyHostBackup;
   private String httpProxyPortBackup;
@@ -265,6 +295,13 @@ public class JspcMojo extends AbstractMojo {
   private boolean genStringAsCharArray;
 
   /**
+   * When scriptlet expressions are used for attribute values, should the rules in JSP.1.6
+   * for the escaping of quote characters be strictly applied? Default [true]
+   */
+  @Parameter(defaultValue = "true")
+  private boolean strictQuoteEscaping;
+
+  /**
    * Version of Java used to compile the jsp files.
    */
   @Parameter(defaultValue = "1.8")
@@ -303,6 +340,7 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("enableJspTagPooling=" + enableJspTagPooling);
       getLog().info("trimSpaces=" + trimSpaces);
       getLog().info("genStringAsCharArray=" + genStringAsCharArray);
+      getLog().info("strictQuoteEscaping=" + strictQuoteEscaping);
       getLog().info("compilerVersion=" + compilerVersion);
       getLog().info("compilerClass=" + compilerClass);
     }
@@ -412,6 +450,7 @@ public class JspcMojo extends AbstractMojo {
     jspc.setPoolingEnabled(enableJspTagPooling);
     jspc.setTrimSpaces(trimSpaces ? TrimSpacesOption.TRUE : TrimSpacesOption.FALSE);
     jspc.setGenStringAsCharArray(genStringAsCharArray);
+    jspc.setStrictQuoteEscaping(strictQuoteEscaping);
     jspc.setCompilerSourceVM(compilerVersion);
     jspc.setCompilerTargetVM(compilerVersion);
     jspc.setcompilerClass(compilerClass);
@@ -571,7 +610,7 @@ public class JspcMojo extends AbstractMojo {
       restoreHttpProxy();
     }
   }
-  
+
   private void validateWithXsd(File mergedWebXml) throws IOException, MojoExecutionException {
     try {
       setHttpProxyIfNecessary();
@@ -586,7 +625,7 @@ public class JspcMojo extends AbstractMojo {
       restoreHttpProxy();
     }
   }
-  
+
   private void setHttpProxyIfNecessary() {
     if (!proxyEnvSet && httpProxyHost != null && !httpProxyHost.isEmpty()) {
       proxyEnvSet = true;
@@ -600,7 +639,7 @@ public class JspcMojo extends AbstractMojo {
       }
     }
   }
-  
+
   private void restoreHttpProxy() {
     if (proxyEnvSet) {
       System.setProperty("http.proxyHost", httpProxyHostBackup != null ? httpProxyHostBackup : "");
@@ -611,7 +650,7 @@ public class JspcMojo extends AbstractMojo {
       proxyEnvSet = false;
     }
   }
-  
+
   private StreamSource[] getWebXmlSchema() throws MalformedURLException {
     URL webXmlXsdUrl = new URL(webXmlXsdSchema);
     return new StreamSource[] {new StreamSource(webXmlXsdUrl.toExternalForm())};
