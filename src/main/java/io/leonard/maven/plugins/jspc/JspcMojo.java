@@ -14,28 +14,43 @@
 //========================================================================
 package io.leonard.maven.plugins.jspc;
 
-import java.io.*;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.util.*;
-import java.util.concurrent.*;
-
-import javax.xml.XMLConstants;
-import javax.xml.parsers.*;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.*;
-
-import org.apache.jasper.*;
+import org.apache.jasper.JasperException;
+import org.apache.jasper.JspC;
+import org.apache.jasper.TrimSpacesOption;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.plugin.*;
-import org.apache.maven.plugins.annotations.*;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.*;
+import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
 import org.xml.sax.SAXException;
+
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * <p>
@@ -166,7 +181,7 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "true")
   private boolean validateWebXmlAfterMerge;
-  
+
   /**
    * If true, validates web.xml file (xsd see webXmlXsdSchema parameter)
    * after beeing merge if mergeFragment parameter is true
@@ -180,19 +195,19 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd")
   private String webXmlXsdSchema;
-  
+
   /**
    * Optionnal hostname of http proxy (use when validating dtd/xsd with external URL)
    */
   @Parameter
   private String httpProxyHost;
-  
+
   /**
    * Optionnal port of http proxy (use when validating dtd/xsd with external URL)
    */
   @Parameter
   private String httpProxyPort;
-  
+
   /**
    * Optionnal no proxy hosts (use when validating dtd/xsd with external URL)<br>
    * A list of hosts that should be reached directly, bypassing the proxy. <br>
@@ -203,7 +218,7 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter
   private String httpNoProxyHosts;
-  
+
   private boolean proxyEnvSet;
   private String httpProxyHostBackup;
   private String httpProxyPortBackup;
@@ -571,7 +586,7 @@ public class JspcMojo extends AbstractMojo {
       restoreHttpProxy();
     }
   }
-  
+
   private void validateWithXsd(File mergedWebXml) throws IOException, MojoExecutionException {
     try {
       setHttpProxyIfNecessary();
@@ -586,7 +601,7 @@ public class JspcMojo extends AbstractMojo {
       restoreHttpProxy();
     }
   }
-  
+
   private void setHttpProxyIfNecessary() {
     if (!proxyEnvSet && httpProxyHost != null && !httpProxyHost.isEmpty()) {
       proxyEnvSet = true;
@@ -600,7 +615,7 @@ public class JspcMojo extends AbstractMojo {
       }
     }
   }
-  
+
   private void restoreHttpProxy() {
     if (proxyEnvSet) {
       System.setProperty("http.proxyHost", httpProxyHostBackup != null ? httpProxyHostBackup : "");
@@ -611,7 +626,7 @@ public class JspcMojo extends AbstractMojo {
       proxyEnvSet = false;
     }
   }
-  
+
   private StreamSource[] getWebXmlSchema() throws MalformedURLException {
     URL webXmlXsdUrl = new URL(webXmlXsdSchema);
     return new StreamSource[] {new StreamSource(webXmlXsdUrl.toExternalForm())};
@@ -651,12 +666,28 @@ public class JspcMojo extends AbstractMojo {
     }
   }
 
+  private <T> T[] arrayAppend(T[] arr, T element) {
+    final int N = arr.length;
+    arr = Arrays.copyOf(arr, N + 1);
+    arr[N] = element;
+    return arr;
+  }
+
   private void prepare() {
     // For some reason JspC doesn't like it if the dir doesn't
     // already exist and refuses to create the web.xml fragment
     File generatedSourceDirectoryFile = new File(generatedClasses);
     if (!generatedSourceDirectoryFile.exists()) {
       generatedSourceDirectoryFile.mkdirs();
+    }
+
+    if (ignoreJspFragmentErrors) {
+      //Manually add an exclude to jspf
+      if (excludes == null) {
+        excludes = new String[]{"**/*.jspf"};
+      } else {
+        excludes = arrayAppend(excludes, "**/*.jspf");
+      }
     }
   }
 
