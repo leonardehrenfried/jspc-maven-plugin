@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.leonard.maven.plugins</groupId>
-  <artifactId>ignore-jsp-fragments-errors-test</artifactId>
+  <artifactId>ignore-non-strict-quote-escaping-test</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>war</packaging>
   <name>Test compilation failure when strict quote escaping is enabled</name>
