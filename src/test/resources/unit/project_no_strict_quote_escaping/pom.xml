@@ -1,0 +1,23 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.leonard.maven.plugins</groupId>
+  <artifactId>ignore-jsp-fragments-errors-test</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>war</packaging>
+  <name>Test compilation success if strict quote escaping is disabled</name>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.leonard.maven.plugins</groupId>
+        <artifactId>jspc-maven-plugin</artifactId>
+        <configuration>
+          <strictQuoteEscaping>false</strictQuoteEscaping>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
