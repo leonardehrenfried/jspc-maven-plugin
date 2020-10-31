@@ -166,7 +166,7 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "true")
   private boolean validateWebXmlAfterMerge;
-  
+
   /**
    * If true, validates web.xml file (xsd see webXmlXsdSchema parameter)
    * after beeing merge if mergeFragment parameter is true
@@ -180,19 +180,19 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd")
   private String webXmlXsdSchema;
-  
+
   /**
    * Optionnal hostname of http proxy (use when validating dtd/xsd with external URL)
    */
   @Parameter
   private String httpProxyHost;
-  
+
   /**
    * Optionnal port of http proxy (use when validating dtd/xsd with external URL)
    */
   @Parameter
   private String httpProxyPort;
-  
+
   /**
    * Optionnal no proxy hosts (use when validating dtd/xsd with external URL)<br>
    * A list of hosts that should be reached directly, bypassing the proxy. <br>
@@ -203,7 +203,7 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter
   private String httpNoProxyHosts;
-  
+
   private boolean proxyEnvSet;
   private String httpProxyHostBackup;
   private String httpProxyPortBackup;
@@ -278,6 +278,13 @@ public class JspcMojo extends AbstractMojo {
   @Parameter(defaultValue = "org.apache.jasper.compiler.JDTCompiler")
   private String compilerClass;
 
+  /**
+   * When scriptlet expressions are used for attribute values, should the rules in JSP.1.6
+   * for the escaping of quote characters be strictly applied? Default [true]
+   */
+  @Parameter(defaultValue = "true")
+  private boolean strictQuoteEscaping;
+
   private Map<String, NameEnvironmentAnswer> resourcesCache = new ConcurrentHashMap<>();
 
   @Override
@@ -305,6 +312,7 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("genStringAsCharArray=" + genStringAsCharArray);
       getLog().info("compilerVersion=" + compilerVersion);
       getLog().info("compilerClass=" + compilerClass);
+      getLog().info("strictQuoteEscaping=" + strictQuoteEscaping);
     }
     try {
       long start = System.currentTimeMillis();
@@ -416,6 +424,7 @@ public class JspcMojo extends AbstractMojo {
     jspc.setCompilerTargetVM(compilerVersion);
     jspc.setcompilerClass(compilerClass);
     jspc.setResourcesCache(resourcesCache);
+    jspc.setStrictQuoteEscaping(strictQuoteEscaping);
     if (topJspC == null) {
       jspc.initClassLoader();
       jspc.initServletContext();
@@ -571,7 +580,7 @@ public class JspcMojo extends AbstractMojo {
       restoreHttpProxy();
     }
   }
-  
+
   private void validateWithXsd(File mergedWebXml) throws IOException, MojoExecutionException {
     try {
       setHttpProxyIfNecessary();
@@ -586,7 +595,7 @@ public class JspcMojo extends AbstractMojo {
       restoreHttpProxy();
     }
   }
-  
+
   private void setHttpProxyIfNecessary() {
     if (!proxyEnvSet && httpProxyHost != null && !httpProxyHost.isEmpty()) {
       proxyEnvSet = true;
@@ -600,7 +609,7 @@ public class JspcMojo extends AbstractMojo {
       }
     }
   }
-  
+
   private void restoreHttpProxy() {
     if (proxyEnvSet) {
       System.setProperty("http.proxyHost", httpProxyHostBackup != null ? httpProxyHostBackup : "");
@@ -611,7 +620,7 @@ public class JspcMojo extends AbstractMojo {
       proxyEnvSet = false;
     }
   }
-  
+
   private StreamSource[] getWebXmlSchema() throws MalformedURLException {
     URL webXmlXsdUrl = new URL(webXmlXsdSchema);
     return new StreamSource[] {new StreamSource(webXmlXsdUrl.toExternalForm())};
