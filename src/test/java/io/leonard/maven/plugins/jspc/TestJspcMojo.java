@@ -15,7 +15,7 @@ import org.junit.*;
  * Test {@link JspcMojo}
  */
 public class TestJspcMojo {
-  
+
   private final static int JAVA_11_BYTECODE_VERSION = 55;
 
   @Rule
@@ -46,9 +46,9 @@ public class TestJspcMojo {
 
     // Then
     Path webfrag = Paths.get("target/test-classes/unit/project_one_jsp/target/webfrag.xml");
-    List<String> actualWebfrag = Files.readAllLines(webfrag);
-    List<String> expectedWebFrag = Files.readAllLines(expectedWebfrag);
-    assertThat(actualWebfrag).isEqualTo(expectedWebFrag);
+    String actualWebfrag = String.join("", Files.readAllLines(webfrag));
+    String expectedWebFrag = String.join("", Files.readAllLines(expectedWebfrag));
+    assertThat(actualWebfrag).isEqualToIgnoringWhitespace(expectedWebFrag);
   }
 
   @Test
@@ -77,9 +77,9 @@ public class TestJspcMojo {
     // Then
     String result = getWebXmlReader("project_one_jsp_mergeFragment").lines().collect(Collectors.joining(System.lineSeparator()));
     String expectedResult = getExpectedWebXmlReader("project_one_jsp_mergeFragment").lines().collect(Collectors.joining(System.lineSeparator()));
-    assertThat(result).isEqualTo(expectedResult);
+    assertThat(result).isEqualToIgnoringWhitespace(expectedResult);
   }
-  
+
   @Test
   public void should_raise_no_validating_xml_error_when_mergeFragment_is_true_many_jsp_4_threads() throws Exception {
     // Given
@@ -91,7 +91,7 @@ public class TestJspcMojo {
     // Then
     //no error, it's good enough
   }
-  
+
   @Test
   public void should_return_correct_merged_xml_when_mergeFragment_is_true_and_web_xml_contains_dtd_insteadof_xsd() throws Exception {
     // Given
@@ -103,9 +103,9 @@ public class TestJspcMojo {
     // Then
     String result = getWebXmlReader("project_one_jsp_web_xml_dtd").lines().collect(Collectors.joining(System.lineSeparator()));
     String expectedResult = getExpectedWebXmlReader("project_one_jsp_web_xml_dtd").lines().collect(Collectors.joining(System.lineSeparator()));
-    assertThat(result).isEqualTo(expectedResult);
+    assertThat(result).isEqualToIgnoringWhitespace(expectedResult);
   }
-  
+
   @Test
   public void should_return_correct_merged_xml_when_mergeFragment_is_true_and_httpProxy_given() throws Exception {
     // Given
@@ -117,9 +117,9 @@ public class TestJspcMojo {
     // Then
     String result = getWebXmlReader("project_one_jsp_httpProxy").lines().collect(Collectors.joining(System.lineSeparator()));
     String expectedResult = getExpectedWebXmlReader("project_one_jsp_httpProxy").lines().collect(Collectors.joining(System.lineSeparator()));
-    assertThat(result).isEqualTo(expectedResult);
+    assertThat(result).isEqualToIgnoringWhitespace(expectedResult);
   }
-  
+
   @Test
   public void should_return_one_compiled_jsp_in_bytecode_java11_when_executeMojo_on_project_one_jsp_compilerVersion_11() throws Exception {
     // Given
