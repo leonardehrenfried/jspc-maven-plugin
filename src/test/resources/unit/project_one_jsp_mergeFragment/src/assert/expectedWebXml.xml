@@ -4,13 +4,12 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
-         
-         
+
+
 
 <!--
 Automatically created by Apache Tomcat JspC.
 -->
-
     <servlet>
         <servlet-name>jsp.jsp.index_jsp</servlet-name>
         <servlet-class>jsp.jsp.index_jsp</servlet-class>
@@ -24,4 +23,5 @@ Automatically created by Apache Tomcat JspC.
 <!--
 End of content automatically created by Apache Tomcat JspC.
 -->
+
 </web-app>
