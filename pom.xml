@@ -31,7 +31,7 @@
     <maven.plugin.plugin.version>3.5</maven.plugin.plugin.version>
     <maven.version>3.6.3</maven.version>
     <java.compilation.level>1.8</java.compilation.level>
-    <tomcat.version>9.0.40</tomcat.version>
+    <tomcat.version>10.0.0</tomcat.version>
     <maven.compiler.source>${java.compilation.level}</maven.compiler.source>
     <maven.compiler.target>${java.compilation.level}</maven.compiler.target>
   </properties>
@@ -136,9 +136,9 @@
     </dependency>
 
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>jstl</artifactId>
-      <version>1.2</version>
+      <groupId>org.glassfish.web</groupId>
+      <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+      <version>2.0.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -161,7 +161,7 @@
         </executions>
       </plugin>
       <plugin>
-      	<groupId>org.apache.maven.plugins</groupId>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
         <version>${maven.site.plugin.version}</version>
         <executions>
@@ -271,7 +271,7 @@
         </executions>
       </plugin>
       <plugin>
-      	<groupId>org.apache.maven.plugins</groupId>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-invoker-plugin</artifactId>
         <version>3.0.1</version>
         <configuration>
@@ -294,8 +294,8 @@
             </goals>
             <configuration>
               <properties>
-              	<tomcat.version>9.0.40</tomcat.version>
-              	<java.compilation.level>${java.compilation.level}</java.compilation.level>
+                <tomcat.version>10.0.0</tomcat.version>
+                <java.compilation.level>${java.compilation.level}</java.compilation.level>
               </properties>
             </configuration>
           </execution>
@@ -350,7 +350,7 @@
     </repository>
     <site>
       <id>gh-pages</id>
-      <!-- This gets automatically pushed to the gh-pages branch. -->
+        <!-- This gets automatically pushed to the gh-pages branch. -->
       <url>file:${project.basedir}/site</url>
     </site>
   </distributionManagement>
