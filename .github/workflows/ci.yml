@@ -26,4 +26,4 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
       - name: Run tests
-        run: mvn test
+        run: mvn test integration-test
