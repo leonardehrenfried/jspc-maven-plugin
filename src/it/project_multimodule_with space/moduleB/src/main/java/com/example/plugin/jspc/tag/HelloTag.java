@@ -1,7 +1,7 @@
 package com.example.plugin.jspc.tag;
 
-import javax.servlet.jsp.JspWriter;
-import javax.servlet.jsp.tagext.SimpleTagSupport;
+import jakarta.servlet.jsp.JspWriter;
+import jakarta.servlet.jsp.tagext.SimpleTagSupport;
 import java.io.IOException;
 
 public class HelloTag extends SimpleTagSupport {
