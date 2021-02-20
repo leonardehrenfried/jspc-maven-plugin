@@ -31,7 +31,7 @@
     <maven.plugin.plugin.version>3.5</maven.plugin.plugin.version>
     <maven.version>3.6.3</maven.version>
     <java.compilation.level>1.8</java.compilation.level>
-    <tomcat.version>10.0.0</tomcat.version>
+    <tomcat.version>10.0.2</tomcat.version>
     <maven.compiler.source>${java.compilation.level}</maven.compiler.source>
     <maven.compiler.target>${java.compilation.level}</maven.compiler.target>
   </properties>
@@ -294,7 +294,7 @@
             </goals>
             <configuration>
               <properties>
-                <tomcat.version>10.0.0</tomcat.version>
+                <tomcat.version>10.0.2</tomcat.version>
                 <java.compilation.level>${java.compilation.level}</java.compilation.level>
               </properties>
             </configuration>
