@@ -1,0 +1,12 @@
+<html>
+
+  <%
+    This file intentionally contains a syntax error. It's excluded by parameter ignoreJspFragmentsErrors so should not compile and therefore the test
+    should pass anyway.
+
+	<body>
+		Hello <%=hello %>
+	</body>
+
+</html>
+
