@@ -29,7 +29,7 @@
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
     <maven.site.plugin.version>3.9.1</maven.site.plugin.version>
     <maven.plugin.plugin.version>3.5</maven.plugin.plugin.version>
-    <maven.version>3.8.1</maven.version>
+    <maven.version>3.8.2</maven.version>
     <java.compilation.level>1.8</java.compilation.level>
     <tomcat.version>10.0.8</tomcat.version>
     <maven.compiler.source>${java.compilation.level}</maven.compiler.source>
