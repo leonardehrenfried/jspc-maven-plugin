@@ -76,7 +76,7 @@ If the Jasper compiler version needs to be overloaded, the plugin must be config
 </build>
 ```
 
-Full documentation of the goal is available at http://leonardehrenfried.github.com/jspc-maven-plugin/compile-mojo.html
+Full documentation of the goal is available at https://leonardehrenfried.github.io/jspc-maven-plugin/compile-mojo.html
 
 ## Compatibility Matrix
 
