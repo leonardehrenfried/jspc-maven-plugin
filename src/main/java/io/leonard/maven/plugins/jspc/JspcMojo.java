@@ -289,7 +289,7 @@ public class JspcMojo extends AbstractMojo {
    * Set this to 'true' to bypass compilation of JSP sources. 
    */
   @Parameter(defaultValue = "false", property = "jspc.skip")
-  private boolean skipJspc;
+  private boolean skip;
 
   private Map<String, NameEnvironmentAnswer> resourcesCache = new ConcurrentHashMap<>();
 
@@ -319,9 +319,9 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("compilerVersion=" + compilerVersion);
       getLog().info("compilerClass=" + compilerClass);
       getLog().info("strictQuoteEscaping=" + strictQuoteEscaping);
-      getLog().info("skip=" + skipJspc);
+      getLog().info("skip=" + skip);
     }
-    if ( skipJspc ) {
+    if ( skip ) {
       getLog().info( "Not compiling jsp sources" );
       return;
     }    
