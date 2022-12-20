@@ -284,6 +284,12 @@ public class JspcMojo extends AbstractMojo {
    */
   @Parameter(defaultValue = "true")
   private boolean strictQuoteEscaping;
+  
+  /**
+   * Set this to 'true' to bypass compilation of JSP sources. 
+   */
+  @Parameter(defaultValue = "false", property = "jspc.skip")
+  private boolean skip;
 
   private Map<String, NameEnvironmentAnswer> resourcesCache = new ConcurrentHashMap<>();
 
@@ -313,7 +319,12 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("compilerVersion=" + compilerVersion);
       getLog().info("compilerClass=" + compilerClass);
       getLog().info("strictQuoteEscaping=" + strictQuoteEscaping);
+      getLog().info("skip=" + skip);
     }
+    if ( skip ) {
+      getLog().info( "Not compiling jsp sources" );
+      return;
+    }    
     try {
       long start = System.currentTimeMillis();
 
@@ -738,3 +749,4 @@ public class JspcMojo extends AbstractMojo {
     return threads == 1 ? webXmlFragment : webXmlFragment + "." + threadIndex;
   }
 }
+
