@@ -27,10 +27,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-    <maven.site.plugin.version>3.9.1</maven.site.plugin.version>
-    <maven.plugin.plugin.version>3.5</maven.plugin.plugin.version>
+    <maven.site.plugin.version>3.12.1</maven.site.plugin.version>
+    <maven.plugin.plugin.version>3.7.0</maven.plugin.plugin.version>
     <maven.version>3.8.6</maven.version>
-    <java.compilation.level>1.8</java.compilation.level>
+    <java.compilation.level>11</java.compilation.level>
     <tomcat.version>10.0.20</tomcat.version>
     <maven.compiler.source>${java.compilation.level}</maven.compiler.source>
     <maven.compiler.target>${java.compilation.level}</maven.compiler.target>
@@ -80,12 +80,14 @@
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
       <version>${maven.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
       <version>${maven.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
