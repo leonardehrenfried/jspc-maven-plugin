@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>
 			<artifactId>tomcat-jsp-api</artifactId>
-			<version>10.1.4</version>
+			<version>10.1.5</version>
 		</dependency>
 	</dependencies>
 </project>
