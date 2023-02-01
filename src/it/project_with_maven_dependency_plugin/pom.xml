@@ -41,7 +41,7 @@
      					<artifactItem>
      						<artifactId>junit</artifactId>
      						<groupId>junit</groupId>
-     						<version>4.12</version>
+     						<version>4.13.2</version>
     						</artifactItem>
      				</artifactItems>
      			</configuration>
