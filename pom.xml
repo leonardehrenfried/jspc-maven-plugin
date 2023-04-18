@@ -335,7 +335,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>3.4.2</version>
+        <version>3.4.3</version>
         <configuration>
           <dependencyLocationEnabled>false</dependencyLocationEnabled>
         </configuration>
