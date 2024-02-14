@@ -39,6 +39,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Handler;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -63,6 +66,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.xml.sax.SAXException;
 
 /**
@@ -283,7 +287,7 @@ public class JspcMojo extends AbstractMojo {
    * trimmed?
    */
   @Parameter(defaultValue = "false")
-  private boolean trimSpaces;
+  private String trimSpaces;
 
   /**
    * Should text strings be generated as char arrays, to improve performance in
@@ -319,7 +323,39 @@ public class JspcMojo extends AbstractMojo {
   @Parameter(defaultValue = "false", property = "jspc.skip")
   private boolean skip;
 
+  /**
+   * The comma separated list of JAR file name patterns to skip when scanning for tag libraries (TLDs).
+   * See {@link org.apache.tomcat.util.scan.StandardJarScanFilter StandardJarScanFilter}.
+   *
+   * @see <a href="https://tomcat.apache.org/tomcat-10.1-doc/config/jar-scan-filter.html#Standard_Implementation">Standard implementation</a>
+   *
+   */
+  @Parameter
+  private String tldSkip;
+
+  /**
+   * The comma separated list of JAR file name patterns to scan when scanning for tag libraries (TLDs).
+   * See {@link org.apache.tomcat.util.scan.StandardJarScanFilter StandardJarScanFilter}.
+   *
+   * @see <a href="https://tomcat.apache.org/tomcat-10.1-doc/config/jar-scan-filter.html#Standard_Implementation">Standard implementation</a>
+   *
+   */
+  @Parameter
+  private String tldScan;
+
+  /**
+   * Controls if JARs are scanned or skipped by default when scanning for TLDs.
+   * See {@link org.apache.tomcat.util.scan.StandardJarScanFilter StandardJarScanFilter}.
+   *
+   * @see <a href="https://tomcat.apache.org/tomcat-10.1-doc/config/jar-scan-filter.html#Standard_Implementation">Standard implementation</a>
+   *
+   */
+  @Parameter
+  private Boolean defaultTldScan;
+
   private Map<String, NameEnvironmentAnswer> resourcesCache = new ConcurrentHashMap<>();
+
+  private Handler[] handlers;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -356,6 +392,7 @@ public class JspcMojo extends AbstractMojo {
     try {
       long start = System.currentTimeMillis();
 
+      installLogHandler();
       prepare();
       compile();
       cleanupSrcs();
@@ -370,6 +407,8 @@ public class JspcMojo extends AbstractMojo {
       getLog().info("Compilation completed in " + time);
     } catch (Exception e) {
       throw new MojoExecutionException("Failure processing jsps", e);
+    } finally {
+      uninstallLogHandler();
     }
   }
 
@@ -457,13 +496,16 @@ public class JspcMojo extends AbstractMojo {
     jspc.setJavaEncoding(javaEncoding);
     jspc.setFailOnError(stopAtFirstError);
     jspc.setPoolingEnabled(enableJspTagPooling);
-    jspc.setTrimSpaces(trimSpaces ? TrimSpacesOption.TRUE : TrimSpacesOption.FALSE);
+    jspc.setTrimSpaces(TrimSpacesOption.valueOf(trimSpaces.toUpperCase()));
     jspc.setGenStringAsCharArray(genStringAsCharArray);
     jspc.setCompilerSourceVM(compilerVersion);
     jspc.setCompilerTargetVM(compilerVersion);
     jspc.setcompilerClass(compilerClass);
     jspc.setResourcesCache(resourcesCache);
     jspc.setStrictQuoteEscaping(strictQuoteEscaping);
+    jspc.setTldSkip(tldSkip);
+    jspc.setTldScan(tldScan);
+    jspc.setDefaultTldScan(defaultTldScan);
     if (topJspC == null) {
       jspc.initClassLoader();
       jspc.initServletContext();
@@ -699,6 +741,20 @@ public class JspcMojo extends AbstractMojo {
     }
   }
 
+  private void installLogHandler() {
+    handlers = LogManager.getLogManager().getLogger("").getHandlers();
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
+  }
+
+  private void uninstallLogHandler() {
+    SLF4JBridgeHandler.uninstall();
+    Logger rootLogger = LogManager.getLogManager().getLogger("");
+    for (Handler handler : handlers) {
+      rootLogger.addHandler(handler);
+    }
+  }
+
   private void prepare() {
     // For some reason JspC doesn't like it if the dir doesn't
     // already exist and refuses to create the web.xml fragment
@@ -770,7 +826,7 @@ public class JspcMojo extends AbstractMojo {
    * don't add suffix to maintain the same behavior as in the mode without
    * multithreading.
    *
-   * @param threadNumber the index of current thread
+   * @param threadIndex the index of current thread
    * @return web xml fragment filename with thread index
    */
   private String getwebXmlFragmentFilename(int threadIndex) {
