@@ -1,13 +1,31 @@
-<project name="jspc maven plugin">
+<?xml version="1.0" encoding="UTF-8"?>
+<site xmlns="http://maven.apache.org/SITE/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SITE/2.0.0 https://maven.apache.org/xsd/site-2.0.0.xsd"
+  name="JSPC Maven Plugin">
 
   <skin>
     <groupId>org.apache.maven.skins</groupId>
     <artifactId>maven-fluido-skin</artifactId>
-    <version>1.6</version>
+    <version>2.0.0-M8</version>
   </skin>
-  
+
   <body>
-    <menu ref="reports" />
+    <menu name="Overview">
+      <item name="Introduction" href="index.html"/>
+      <item name="How to" href="howto.html"/>
+      <item name="Goals" href="plugin-info.html"/>
+    </menu>
+    <menu ref="reports"/>
   </body>
 
-</project>
+  <custom>
+    <fluidoSkin>
+      <gitHub>
+        <projectId>leonardehrenfried/jspc-maven-plugin</projectId>
+        <ribbonOrientation>right</ribbonOrientation>
+        <ribbonColor>gray</ribbonColor>
+      </gitHub>
+    </fluidoSkin>
+  </custom>
+
+</site>

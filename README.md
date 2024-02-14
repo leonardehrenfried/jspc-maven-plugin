@@ -60,15 +60,15 @@ If the Jasper compiler version needs to be overloaded, the plugin must be config
         <version>${ENTER_JASPER_VERSION_HERE}</version>
         <exclusions>
           <exclusion>
-            <groupId>org.eclipse.jdt.core.compiler</groupId>
+            <groupId>org.eclipse.jdt</groupId>
             <artifactId>ecj</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.jdt.core.compiler</groupId>
+        <groupId>org.eclipse.jdt</groupId>
         <artifactId>ecj</artifactId>
-        <version>4.6.1</version>
+        <version>3.36.0</version>
       </dependency>
     </dependencies>
   </plugin>
