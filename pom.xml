@@ -27,8 +27,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-    <maven.site.plugin.version>3.12.1</maven.site.plugin.version>
+    <maven.site.plugin.version>4.0.0-M13</maven.site.plugin.version>
     <maven.plugin.plugin.version>3.11.0</maven.plugin.plugin.version>
+    <maven.plugin.reporting.plugin.version>3.10.2</maven.plugin.reporting.plugin.version>
+    <maven.project.info.reports.plugin.version>3.5.0</maven.project.info.reports.plugin.version>
     <maven.version>3.9.6</maven.version>
     <java.compilation.level>11</java.compilation.level>
     <tomcat.version>10.1.18</tomcat.version>
@@ -46,7 +48,7 @@
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -56,18 +58,6 @@
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-jasper</artifactId>
       <version>${tomcat.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.eclipse.jdt.core.compiler</groupId>
-          <artifactId>ecj</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>org.eclipse.jdt.core.compiler</groupId>
-      <artifactId>ecj</artifactId>
-      <version>4.6.1</version>
     </dependency>
 
     <dependency>
@@ -330,24 +320,17 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-site-plugin</artifactId>
-        <version>${maven.site.plugin.version}</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-plugin-plugin</artifactId>
-        <version>${maven.plugin.plugin.version}</version>
+        <artifactId>maven-plugin-report-plugin</artifactId>
+        <version>${maven.plugin.reporting.plugin.version}</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>3.5.0</version>
-        <configuration>
-          <dependencyLocationEnabled>false</dependencyLocationEnabled>
-        </configuration>
+        <version>${maven.project.info.reports.plugin.version}</version>
         <reportSets>
           <reportSet>
             <reports>
+              <report>index</report>
               <report>team</report>
               <report>mailing-lists</report>
               <report>ci-management</report>
