@@ -2,5 +2,18 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:base"
-  ]
+  ],
+  "prConcurrentLimit": 3,
+  "rebaseWhen": "conflicted",
+  "packageRules": [
+    {
+      "description": "automatically merge test, logging and build dependencies",
+      "matchPackagePrefixes": [
+        "org.apache.maven.plugins:"
+      ],
+      "automerge": true,
+      "schedule": "after 11pm and before 5am every weekday"
+    }
+  ],
+  "timezone": "Europe/Berlin"
 }
