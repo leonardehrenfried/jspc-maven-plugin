@@ -12,8 +12,9 @@
         "org.apache.maven.plugins:",
         "org.apache.maven.plugin-tools"
       ],
+      "groupName": "Maven plugins",
       "automerge": true,
-      "schedule": "after 11pm and before 5am every weekday"
+      "schedule": "monthly"
     }
   ],
   "timezone": "Europe/Berlin"
