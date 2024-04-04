@@ -9,7 +9,8 @@
     {
       "description": "automatically merge test, logging and build dependencies",
       "matchPackagePrefixes": [
-        "org.apache.maven.plugins:"
+        "org.apache.maven.plugins:",
+        "org.apache.maven.plugin-tools"
       ],
       "automerge": true,
       "schedule": "after 11pm and before 5am every weekday"
