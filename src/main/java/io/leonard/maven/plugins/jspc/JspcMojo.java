@@ -156,7 +156,7 @@ public class JspcMojo extends AbstractMojo {
   private String webAppSourceDirectory;
 
   /**
-   * Location of web.xml. Defaults to src/main/webapp/web.xml.
+   * Location of web.xml. Defaults to src/main/webapp/WEB-INF/web.xml.
    */
   @Parameter(defaultValue = "${basedir}/src/main/webapp/WEB-INF/web.xml")
   private String webXml;
