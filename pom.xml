@@ -27,10 +27,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-    <maven.site.plugin.version>4.0.0-M15</maven.site.plugin.version>
+    <maven.site.plugin.version>4.0.0-M16</maven.site.plugin.version>
     <maven.plugin.plugin.version>3.13.1</maven.plugin.plugin.version>
     <maven.plugin.reporting.plugin.version>3.13.1</maven.plugin.reporting.plugin.version>
-    <maven.project.info.reports.plugin.version>3.6.1</maven.project.info.reports.plugin.version>
+    <maven.project.info.reports.plugin.version>3.6.2</maven.project.info.reports.plugin.version>
     <maven.version>3.9.8</maven.version>
     <java.compilation.level>11</java.compilation.level>
     <tomcat.version>10.1.26</tomcat.version>
@@ -199,7 +199,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.1.1</version>
         <configuration>
           <autoVersionSubmodules>true</autoVersionSubmodules>
           <useReleaseProfile>false</useReleaseProfile>
@@ -223,7 +223,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.7.0</version>
+        <version>3.8.0</version>
         <configuration>
           <additionalOptions>-html5</additionalOptions>
           <tags>
