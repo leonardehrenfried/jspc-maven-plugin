@@ -15,6 +15,15 @@
       "groupName": "Maven plugins",
       "automerge": true,
       "schedule": "monthly"
+    },
+    {
+      "description": "automatically merge test, logging and build dependencies",
+      "matchPackagePrefixes": [
+        "org.apache.tomcat:"
+      ],
+      "groupName": "Jasper",
+      "automerge": true,
+      "schedule": "monthly"
     }
   ],
   "timezone": "Europe/Berlin"
