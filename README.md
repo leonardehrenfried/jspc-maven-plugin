@@ -80,6 +80,7 @@ Full documentation of the goal is available at https://leonardehrenfried.github.
 
 ## Compatibility Matrix
 
+* 5.X version of jspc-maven-plugin : needs Java >= 17, Jasper only 11.X
 * 4.X version of jspc-maven-plugin : needs Java >= 11, Jasper only 10.X
 * 3.X version of jspc-maven-plugin : needs Java >= 1.8, Jasper only 9.X
 * 2.X version of jspc-maven-plugin : needs Java >= 1.7, Jasper only 8.X
